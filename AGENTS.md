@@ -67,3 +67,7 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - Async methods return `Promise<void>`; synchronous methods return void or a value directly
 - Private helpers at the bottom of the class, public command methods in the middle
 - No comments unless logic is non-obvious
+
+## Git workflow
+
+- Always use Conventional Commits for commit messages (for example: `feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`)

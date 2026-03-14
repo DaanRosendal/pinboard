@@ -1,16 +1,13 @@
 # Pinboard
 
-[![Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/daanrosendal.pinboard?label=Marketplace)](https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard)
-[![Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/daanrosendal.pinboard?label=Installs)](https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+<!-- Demo image slot: add a screenshot at assets/demo.png, then uncomment the line below. -->
+<!-- ![Pinboard demo](assets/demo.png) -->
 
 A VS Code extension that adds a **Pinboard** panel inside the Explorer sidebar. Pin any file or folder on disk as a persistent shortcut - independent of your current workspace.
 
 Install from the Visual Studio Marketplace:
 
 https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard
-
-Looking for a quick screenshot/demo setup? Use the sample tree in `demo/`.
 
 ---
 
@@ -78,5 +75,3 @@ npm install
 npm run compile   # type-check + lint + bundle
 npm run watch     # incremental rebuild on save
 ```
-
-Press **F5** (or `Cmd+Shift+P` → **Debug: Start Debugging**) to open an Extension Development Host with the extension loaded.
