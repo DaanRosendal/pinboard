@@ -1,0 +1,237 @@
+{
+  "name": "pinboard",
+  "displayName": "Pinboard - Pin Folders and Files",
+  "description": "Pin any file or folder on disk as a quick-access shortcut in the Explorer sidebar",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": ["onView:pinboard"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Pinboard",
+      "properties": {
+        "pinboard.scope": {
+          "type": "string",
+          "enum": ["global", "workspace"],
+          "default": "global",
+          "enumDescriptions": [
+            "Pinned folders persist across all workspaces.",
+            "Pinned folders are scoped to the current workspace."
+          ],
+          "description": "Where pinned folders are stored."
+        }
+      }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "pinboard",
+          "name": "Pinboard",
+          "order": 1
+        }
+      ]
+    },
+    "commands": [
+      { "command": "pinboard.addFolder",          "title": "Add File or Folder",                            "icon": "$(add)" },
+      { "command": "pinboard.refresh",            "title": "Refresh",                                       "icon": "$(refresh)" },
+      { "command": "pinboard.unpinFolder",        "title": "Unpin Folder",                                  "icon": "$(remove)" },
+      { "command": "pinboard.unpinFile",          "title": "Unpin File",                                    "icon": "$(remove)" },
+      { "command": "pinboard.openInNewWindow",    "title": "Open in New Window",                            "icon": "$(multiple-windows)" },
+      { "command": "pinboard.moveUp",             "title": "Move Up",                                       "icon": "$(arrow-up)" },
+      { "command": "pinboard.moveDown",           "title": "Move Down",                                     "icon": "$(arrow-down)" },
+      { "command": "pinboard.alreadyOpen",        "title": "Already open in this window",                   "icon": "$(window-active)" },
+      { "command": "pinboard.pinFromExplorer",    "title": "Pin to Pinboard" },
+      { "command": "pinboard.switchToWorkspace",  "title": "Scope: Global — click to switch to Workspace",  "icon": "$(globe)" },
+      { "command": "pinboard.switchToGlobal",     "title": "Scope: Workspace — click to switch to Global",  "icon": "$(root-folder)" },
+      { "command": "pinboard.openToSide",         "title": "Open to the Side",                              "icon": "$(split-horizontal)" },
+      { "command": "pinboard.revealInOS",         "title": "Reveal in Finder" },
+      { "command": "pinboard.openInTerminal",     "title": "Open in Integrated Terminal" },
+      { "command": "pinboard.findInFolder",       "title": "Find in Folder..." },
+      { "command": "pinboard.copyPath",           "title": "Copy Path" },
+      { "command": "pinboard.copyRelativePath",   "title": "Copy Relative Path" },
+      { "command": "pinboard.rename",             "title": "Rename" },
+      { "command": "pinboard.deleteItem",         "title": "Delete" },
+      { "command": "pinboard.newFile",            "title": "New File..." },
+      { "command": "pinboard.newFolder",          "title": "New Folder..." },
+      { "command": "pinboard.renamePinnedFolder", "title": "Rename" },
+      { "command": "pinboard.deletePinnedFolder", "title": "Delete" }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pinboard.switchToWorkspace",
+          "when": "view == pinboard && pinboard.isGlobalScope",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pinboard.switchToGlobal",
+          "when": "view == pinboard && !pinboard.isGlobalScope",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pinboard.addFolder",
+          "when": "view == pinboard",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pinboard.refresh",
+          "when": "view == pinboard",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "pinboard.unpinFolder",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast)",
+          "group": "inline@3"
+        },
+        {
+          "command": "pinboard.unpinFile",
+          "when": "view == pinboard && (viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
+          "group": "inline@3"
+        },
+        {
+          "command": "pinboard.openInNewWindow",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast)",
+          "group": "inline@2"
+        },
+        {
+          "command": "pinboard.alreadyOpen",
+          "when": "view == pinboard && (viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast)",
+          "group": "inline@2"
+        },
+        {
+          "command": "pinboard.moveUp",
+          "when": "view == pinboard && (viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
+          "group": "inline@4"
+        },
+        {
+          "command": "pinboard.moveDown",
+          "when": "view == pinboard && (viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle)",
+          "group": "inline@5"
+        },
+
+        {
+          "command": "pinboard.newFile",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedDirectory)",
+          "group": "1_new@1"
+        },
+        {
+          "command": "pinboard.newFolder",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedDirectory)",
+          "group": "1_new@2"
+        },
+
+        {
+          "command": "pinboard.revealInOS",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast || viewItem == pinnedFile || viewItem == pinnedDirectory)",
+          "group": "2_reveal@1"
+        },
+        {
+          "command": "pinboard.openInTerminal",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedDirectory)",
+          "group": "2_reveal@2"
+        },
+        {
+          "command": "pinboard.findInFolder",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedDirectory)",
+          "group": "2_reveal@3"
+        },
+
+        {
+          "command": "pinboard.openToSide",
+          "when": "view == pinboard && (viewItem == pinnedFile || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
+          "group": "3_open@1"
+        },
+        {
+          "command": "pinboard.openInNewWindow",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast)",
+          "group": "3_open@2"
+        },
+        {
+          "command": "pinboard.moveUp",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
+          "group": "3_open@3"
+        },
+        {
+          "command": "pinboard.moveDown",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
+          "group": "3_open@4"
+        },
+
+        {
+          "command": "pinboard.copyPath",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast || viewItem == pinnedFile || viewItem == pinnedDirectory)",
+          "group": "4_copy@1"
+        },
+        {
+          "command": "pinboard.copyRelativePath",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast || viewItem == pinnedFile || viewItem == pinnedDirectory)",
+          "group": "4_copy@2"
+        },
+
+        {
+          "command": "pinboard.rename",
+          "when": "view == pinboard && (viewItem == pinnedFile || viewItem == pinnedDirectory)",
+          "group": "5_modify@1"
+        },
+        {
+          "command": "pinboard.deleteItem",
+          "when": "view == pinboard && (viewItem == pinnedFile || viewItem == pinnedDirectory)",
+          "group": "5_modify@2"
+        },
+        {
+          "command": "pinboard.renamePinnedFolder",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
+          "group": "5_modify@1"
+        },
+        {
+          "command": "pinboard.deletePinnedFolder",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
+          "group": "5_modify@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "pinboard.pinFromExplorer",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@100"
+        },
+        {
+          "command": "pinboard.pinFromExplorer",
+          "when": "!explorerResourceIsFolder && resourceScheme == file",
+          "group": "navigation@100"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
+    "eslint": "^9.9.1",
+    "esbuild": "^0.23.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.5.4",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1"
+  }
+}
