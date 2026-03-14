@@ -3,9 +3,9 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Folders and Files",
   "description": "Pin any file or folder on disk as a quick-access shortcut in the Explorer sidebar",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
-  "icon": "pinboard-logo.png",
+  "icon": "assets/icon.png",
   "keywords": [
     "pin",
     "pinned",
@@ -25,8 +25,12 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": ["Other"],
-  "activationEvents": ["onView:pinboard"],
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:pinboard"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
@@ -34,7 +38,10 @@
       "properties": {
         "pinboard.scope": {
           "type": "string",
-          "enum": ["global", "workspace"],
+          "enum": [
+            "global",
+            "workspace"
+          ],
           "default": "global",
           "enumDescriptions": [
             "Pinned folders persist across all workspaces.",
@@ -54,29 +61,109 @@
       ]
     },
     "commands": [
-      { "command": "pinboard.addFolder",          "title": "Add File or Folder",                            "icon": "$(add)" },
-      { "command": "pinboard.refresh",            "title": "Refresh",                                       "icon": "$(refresh)" },
-      { "command": "pinboard.unpinFolder",        "title": "Unpin Folder",                                  "icon": "$(remove)" },
-      { "command": "pinboard.unpinFile",          "title": "Unpin File",                                    "icon": "$(remove)" },
-      { "command": "pinboard.openInNewWindow",    "title": "Open in New Window",                            "icon": "$(multiple-windows)" },
-      { "command": "pinboard.moveUp",             "title": "Move Up",                                       "icon": "$(arrow-up)" },
-      { "command": "pinboard.moveDown",           "title": "Move Down",                                     "icon": "$(arrow-down)" },
-      { "command": "pinboard.alreadyOpen",        "title": "Already open in this window",                   "icon": "$(window-active)" },
-      { "command": "pinboard.pinFromExplorer",    "title": "Pin to Pinboard" },
-      { "command": "pinboard.switchToWorkspace",  "title": "Scope: Global — click to switch to Workspace",  "icon": "$(globe)" },
-      { "command": "pinboard.switchToGlobal",     "title": "Scope: Workspace — click to switch to Global",  "icon": "$(root-folder)" },
-      { "command": "pinboard.openToSide",         "title": "Open to the Side",                              "icon": "$(split-horizontal)" },
-      { "command": "pinboard.revealInOS",         "title": "Reveal in Finder" },
-      { "command": "pinboard.openInTerminal",     "title": "Open in Integrated Terminal" },
-      { "command": "pinboard.findInFolder",       "title": "Find in Folder..." },
-      { "command": "pinboard.copyPath",           "title": "Copy Path" },
-      { "command": "pinboard.copyRelativePath",   "title": "Copy Relative Path" },
-      { "command": "pinboard.rename",             "title": "Rename" },
-      { "command": "pinboard.deleteItem",         "title": "Delete" },
-      { "command": "pinboard.newFile",            "title": "New File..." },
-      { "command": "pinboard.newFolder",          "title": "New Folder..." },
-      { "command": "pinboard.renamePinnedFolder", "title": "Rename" },
-      { "command": "pinboard.deletePinnedFolder", "title": "Delete" }
+      {
+        "command": "pinboard.addFolder",
+        "title": "Add File or Folder",
+        "icon": "$(add)"
+      },
+      {
+        "command": "pinboard.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "pinboard.unpinFolder",
+        "title": "Unpin Folder",
+        "icon": "$(remove)"
+      },
+      {
+        "command": "pinboard.unpinFile",
+        "title": "Unpin File",
+        "icon": "$(remove)"
+      },
+      {
+        "command": "pinboard.openInNewWindow",
+        "title": "Open in New Window",
+        "icon": "$(multiple-windows)"
+      },
+      {
+        "command": "pinboard.moveUp",
+        "title": "Move Up",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "pinboard.moveDown",
+        "title": "Move Down",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "pinboard.alreadyOpen",
+        "title": "Already open in this window",
+        "icon": "$(window-active)"
+      },
+      {
+        "command": "pinboard.pinFromExplorer",
+        "title": "Pin to Pinboard"
+      },
+      {
+        "command": "pinboard.switchToWorkspace",
+        "title": "Scope: Global — click to switch to Workspace",
+        "icon": "$(globe)"
+      },
+      {
+        "command": "pinboard.switchToGlobal",
+        "title": "Scope: Workspace — click to switch to Global",
+        "icon": "$(root-folder)"
+      },
+      {
+        "command": "pinboard.openToSide",
+        "title": "Open to the Side",
+        "icon": "$(split-horizontal)"
+      },
+      {
+        "command": "pinboard.revealInOS",
+        "title": "Reveal in Finder"
+      },
+      {
+        "command": "pinboard.openInTerminal",
+        "title": "Open in Integrated Terminal"
+      },
+      {
+        "command": "pinboard.findInFolder",
+        "title": "Find in Folder..."
+      },
+      {
+        "command": "pinboard.copyPath",
+        "title": "Copy Path"
+      },
+      {
+        "command": "pinboard.copyRelativePath",
+        "title": "Copy Relative Path"
+      },
+      {
+        "command": "pinboard.rename",
+        "title": "Rename"
+      },
+      {
+        "command": "pinboard.deleteItem",
+        "title": "Delete"
+      },
+      {
+        "command": "pinboard.newFile",
+        "title": "New File..."
+      },
+      {
+        "command": "pinboard.newFolder",
+        "title": "New Folder..."
+      },
+      {
+        "command": "pinboard.renamePinnedFolder",
+        "title": "Rename"
+      },
+      {
+        "command": "pinboard.deletePinnedFolder",
+        "title": "Delete"
+      }
     ],
     "menus": {
       "view/title": [
@@ -132,7 +219,6 @@
           "when": "view == pinboard && (viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle)",
           "group": "inline@5"
         },
-
         {
           "command": "pinboard.newFile",
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedDirectory)",
@@ -143,7 +229,6 @@
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedDirectory)",
           "group": "1_new@2"
         },
-
         {
           "command": "pinboard.revealInOS",
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast || viewItem == pinnedFile || viewItem == pinnedDirectory)",
@@ -159,7 +244,6 @@
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedDirectory)",
           "group": "2_reveal@3"
         },
-
         {
           "command": "pinboard.openToSide",
           "when": "view == pinboard && (viewItem == pinnedFile || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
@@ -180,7 +264,6 @@
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
           "group": "3_open@4"
         },
-
         {
           "command": "pinboard.copyPath",
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast || viewItem == pinnedFile || viewItem == pinnedDirectory)",
@@ -191,7 +274,6 @@
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast || viewItem == pinnedFile || viewItem == pinnedDirectory)",
           "group": "4_copy@2"
         },
-
         {
           "command": "pinboard.rename",
           "when": "view == pinboard && (viewItem == pinnedFile || viewItem == pinnedDirectory)",

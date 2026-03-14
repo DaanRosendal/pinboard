@@ -6,6 +6,7 @@ AGENTS.md
 eslint.config.js
 .yarnrc
 esbuild.js
+assets/icon-source.png
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/.eslintrc.json
