@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.8
+
+- Change the package license metadata to SPDX `MIT`.
+- Document the Open VSX publishing flow alongside the VS Code Marketplace release process.
+
 ## 0.0.5
 
 - Refresh the Marketplace icon from a newly cropped source image for better framing and readability.

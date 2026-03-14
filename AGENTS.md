@@ -60,6 +60,9 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - The published extension icon is `assets/icon.png`; the larger source asset is `assets/icon-source.png` and is excluded from the VSIX via `.vscodeignore`
 - The current icon was generated with macOS `sips` by center-cropping the source logo to square with `--cropOffset 180 900 -c 1152 1152` and resizing to `512x512`
 - `demo/` is a repo-only sample tree for screenshots and manual demos; it should stay excluded from the VSIX via `.vscodeignore`
+- Publish to the VS Code Marketplace with `npx @vscode/vsce publish`
+- Publish to Open VSX with `npx ovsx publish -p <OPEN_VSX_TOKEN>`
+- Keep the `license` field as the SPDX string `MIT` so Open VSX accepts the package metadata
 
 ## Code style
 
