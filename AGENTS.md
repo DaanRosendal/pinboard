@@ -56,8 +56,10 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - Command icons use VS Code codicons: `$(icon-name)` syntax
 - `activationEvents: ["onView:pinboard"]` — lazy activation, do not change to `*`
 - Marketplace metadata now lives in `package.json`: keep `publisher`, `license`, `icon`, `repository`, `homepage`, and `bugs` intact unless intentionally changing listing metadata
+- Marketplace discovery metadata also lives in `package.json`: keep `keywords`, `galleryBanner`, `markdown`, and `pricing` coherent with the listing strategy
 - The published extension icon is `assets/icon.png`; the larger source asset is `assets/icon-source.png` and is excluded from the VSIX via `.vscodeignore`
 - The current icon was generated with macOS `sips` by center-cropping the source logo to square and resizing to `256x256`
+- `demo/` is a repo-only sample tree for screenshots and manual demos; it should stay excluded from the VSIX via `.vscodeignore`
 
 ## Code style
 

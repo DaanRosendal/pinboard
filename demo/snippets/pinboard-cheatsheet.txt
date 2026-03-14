@@ -1,0 +1,13 @@
+Pinboard quick demo
+===================
+
+Pin:
+- demo/client
+- demo/notes/launch-plan.md
+- demo/snippets/pinboard-cheatsheet.txt
+
+Show:
+- inline unpin
+- move up / move down
+- open in new window
+- nested folder browsing

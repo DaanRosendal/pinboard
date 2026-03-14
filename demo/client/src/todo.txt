@@ -1,0 +1,3 @@
+- Capture Marketplace screenshot
+- Trim README copy if the listing feels crowded
+- Verify hover actions in a narrow sidebar

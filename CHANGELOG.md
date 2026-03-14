@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.3
+
+- Expand Marketplace search metadata with broader navigation and bookmarking keywords.
+- Add Marketplace banner metadata and other listing polish in `package.json`.
+- Add a small `demo/` workspace for screenshots and manual demos without shipping it in the VSIX.
+
 ## 0.0.2
 
 - Optimize the published extension icon by switching to a square `256x256` asset generated with macOS `sips`.

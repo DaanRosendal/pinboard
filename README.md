@@ -10,6 +10,8 @@ Install from the Visual Studio Marketplace:
 
 https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard
 
+Looking for a quick screenshot/demo setup? Use the sample tree in `demo/`.
+
 ---
 
 ## Features
