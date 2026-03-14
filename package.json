@@ -1,8 +1,27 @@
 {
   "name": "pinboard",
+  "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Folders and Files",
   "description": "Pin any file or folder on disk as a quick-access shortcut in the Explorer sidebar",
   "version": "0.0.1",
+  "license": "MIT",
+  "icon": "pinboard-logo.png",
+  "keywords": [
+    "pin",
+    "pinned",
+    "files",
+    "folders",
+    "explorer",
+    "sidebar"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DaanRosendal/pinboard.git"
+  },
+  "homepage": "https://github.com/DaanRosendal/pinboard#readme",
+  "bugs": {
+    "url": "https://github.com/DaanRosendal/pinboard/issues"
+  },
   "engines": {
     "vscode": "^1.85.0"
   },

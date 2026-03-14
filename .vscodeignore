@@ -1,7 +1,9 @@
 .vscode/**
 .vscode-test/**
 src/**
+AGENTS.md
 .gitignore
+eslint.config.js
 .yarnrc
 esbuild.js
 vsc-extension-quickstart.md

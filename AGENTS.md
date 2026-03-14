@@ -42,11 +42,11 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - **UI**: `TreeView` only — no WebviewView. The view ID `"pinboard"` must match in `package.json` and `createTreeView()`.
 - **Tree item types**: `PinnedItemRoot` (pinned roots, `kind: 'root'`) and `FileSystemItem` (nested files/dirs, `kind: 'fsitem'`). Both extend `vscode.TreeItem`.
 - **contextValue strings** (must stay in sync with `package.json` `when` clauses):
-  - `pinnedFolder` — root folder, not current workspace
-  - `pinnedFolderActive` — root folder, is current workspace
-  - `pinnedFileRoot` — root file (pinned directly)
-  - `pinnedDirectory` — nested directory inside a pinned folder
-  - `pinnedFile` — nested file inside a pinned folder
+  - Nested items remain `pinnedDirectory` and `pinnedFile`
+  - Root items now encode type + active workspace state + position:
+    - folders: `pinnedFolder{Single|First|Middle|Last}`
+    - active folders: `pinnedFolderActive{Single|First|Middle|Last}`
+    - root files: `pinnedFileRoot{Single|First|Middle|Last}`
 - **Context key**: `pinboard.isGlobalScope` (boolean) — set via `setContext`, drives scope toggle button visibility in `view/title`.
 
 ## package.json rules
@@ -55,6 +55,8 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - `"group": "inline"` puts buttons directly on tree rows on hover; all other groups go in right-click menu
 - Command icons use VS Code codicons: `$(icon-name)` syntax
 - `activationEvents: ["onView:pinboard"]` — lazy activation, do not change to `*`
+- Marketplace metadata now lives in `package.json`: keep `publisher`, `license`, `icon`, `repository`, `homepage`, and `bugs` intact unless intentionally changing listing metadata
+- The extension icon is `pinboard-logo.png` in the repo root
 
 ## Code style
 
