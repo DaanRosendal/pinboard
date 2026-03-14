@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.4
+
+- Tighten the Marketplace icon crop so the pin/folder mark reads clearly at small sizes.
+- Increase the published icon asset to `512x512` for better detail retention.
+
 ## 0.0.3
 
 - Expand Marketplace search metadata with broader navigation and bookmarking keywords.
