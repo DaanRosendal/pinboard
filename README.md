@@ -1,7 +1,6 @@
 # Pinboard
 
-<!-- Demo image slot: add a screenshot at assets/demo.png, then uncomment the line below. -->
-<!-- ![Pinboard demo](assets/demo.png) -->
+![Pinboard demo](assets/demo.png)
 
 A VS Code extension that adds a **Pinboard** panel inside the Explorer sidebar. Pin any file or folder on disk as a persistent shortcut - independent of your current workspace.
 
@@ -31,8 +30,8 @@ Right-click any item for contextual actions:
 
 | Item type     | Actions                                                                                                                                                 |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pinned folder | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Open in New Window, Move Up, Move Down, Copy Path, Copy Relative Path, Rename, Delete, Unpin Folder |
-| Pinned file   | Open to the Side, Move Up, Move Down, Reveal in Finder, Copy Path, Copy Relative Path, Rename, Delete, Unpin File                                                           |
+| Pinned folder | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Move Up, Move Down, Open in New Window, Copy Path, Copy Relative Path, Rename, Delete, Unpin Folder |
+| Pinned file   | Open to the Side, Move Up, Move Down, Copy Path, Copy Relative Path, Reveal in Finder, Rename, Delete, Unpin File                                                           |
 | Subfolder     | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Copy Path, Copy Relative Path, Rename, Delete                                 |
 | Nested file   | Open to the Side, Reveal in Finder, Copy Path, Copy Relative Path, Rename, Delete                                                                       |
 
@@ -56,7 +55,7 @@ Paths that no longer exist on disk are silently removed on startup.
 | Unpin a file       | Hover a pinned file and click **Unpin File**, or right-click it and choose **Unpin File**           |
 | Open in new window | Hover a pinned folder and click **Open in New Window**, or right-click it and choose that action    |
 | Toggle scope       | Click the scope button in the panel header to switch between **Global** and **Workspace**            |
-| Reorder            | Hover a pinned item and click **Move Up** or **Move Down**, drag it, or right-click it and choose **Move Up** or **Move Down** |
+| Reorder            | Drag a pinned item, or right-click it and choose **Move Up** or **Move Down** |
 
 ---
 
