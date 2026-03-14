@@ -117,9 +117,6 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pinboard.copyRelativePath', (item: FileSystemItem | PinnedItemRoot) =>
       provider.copyRelativePath(item)
     ),
-    vscode.commands.registerCommand('pinboard.collapseAll', () =>
-      vscode.commands.executeCommand('workbench.actions.treeView.pinboard.collapseAll')
-    ),
   );
 }
 
