@@ -63,6 +63,7 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - Publish to the VS Code Marketplace with `npx @vscode/vsce publish`
 - Publish to Open VSX with `npx ovsx publish -p <OPEN_VSX_TOKEN>`
 - Keep the `license` field as the SPDX string `MIT` so Open VSX accepts the package metadata
+- Whenever `package.json` version is bumped, add a matching release note entry to `CHANGELOG.md` in the same change
 
 ## Code style
 
