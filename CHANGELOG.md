@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.13
+
+- Add a Buy Me a Coffee support button to the README using a Marketplace-safe linked image instead of an embeddable script widget.
+
 ## 0.0.12
 
 - Revert empty-panel context menu added in 0.0.11 — VS Code does not support context menus on empty tree view space ([upstream issue #188259](https://github.com/microsoft/vscode/issues/188259)).

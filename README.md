@@ -9,6 +9,10 @@ Install from:
 - Visual Studio Marketplace: https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard
 - Open VSX Registry: https://open-vsx.org/extension/daanrosendal/pinboard
 
+Support development:
+
+<a href="https://buymeacoffee.com/daanrosendal"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" width="180"></a>
+
 ---
 
 ## Features
