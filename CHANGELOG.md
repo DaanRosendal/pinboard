@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.9
+
+- Add the Open VSX install link to the README marketplace section.
+- Remove the README development section in favor of the repo-specific guidance in `AGENTS.md`.
+
 ## 0.0.8
 
 - Change the package license metadata to SPDX `MIT`.

@@ -4,9 +4,10 @@
 
 A VS Code extension that adds a **Pinboard** panel inside the Explorer sidebar. Pin any file or folder on disk as a persistent shortcut - independent of your current workspace.
 
-Install from the Visual Studio Marketplace:
+Install from:
 
-https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard
+- Visual Studio Marketplace: https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard
+- Open VSX Registry: https://open-vsx.org/extension/daanrosendal/pinboard
 
 ---
 
@@ -64,13 +65,3 @@ Paths that no longer exist on disk are silently removed on startup.
 | Setting          | Default    | Description                                                                                                |
 | ---------------- | ---------- | ---------------------------------------------------------------------------------------------------------- |
 | `pinboard.scope` | `"global"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace. |
-
----
-
-## Development
-
-```bash
-npm install
-npm run compile   # type-check + lint + bundle
-npm run watch     # incremental rebuild on save
-```
