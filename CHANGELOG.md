@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.5
+
+- Refresh the Marketplace icon from a newly cropped source image for better framing and readability.
+
 ## 0.0.4
 
 - Tighten the Marketplace icon crop so the pin/folder mark reads clearly at small sizes.
