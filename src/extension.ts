@@ -28,10 +28,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
   syncView();
   syncScopeContext();
-  provider.onDidChangeTreeData(syncView);
 
   context.subscriptions.push(
     treeView,
+    provider.onDidChangeTreeData(syncView),
 
     vscode.workspace.onDidChangeWorkspaceFolders(() => provider.refresh()),
 

@@ -3,7 +3,7 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
   "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, and quick actions",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [
@@ -74,10 +74,10 @@
           ],
           "default": "global",
           "enumDescriptions": [
-            "Pinned folders persist across all workspaces.",
-            "Pinned folders are scoped to the current workspace."
+            "Pinned items persist across all workspaces.",
+            "Pinned items are scoped to the current workspace."
           ],
-          "description": "Where pinned folders are stored."
+          "description": "Where pinned items are stored."
         }
       }
     },
@@ -152,7 +152,7 @@
       },
       {
         "command": "pinboard.revealInOS",
-        "title": "Reveal in Finder"
+        "title": "Reveal in File Manager"
       },
       {
         "command": "pinboard.openInTerminal",
@@ -221,7 +221,12 @@
       "view/item/context": [
         {
           "command": "pinboard.openInNewWindow",
-          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast)",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast)",
+          "group": "inline@1"
+        },
+        {
+          "command": "pinboard.alreadyOpen",
+          "when": "view == pinboard && (viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast)",
           "group": "inline@1"
         },
         {

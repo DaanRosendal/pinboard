@@ -5,10 +5,7 @@ import * as fs from 'fs';
 const STATE_KEY = 'pinboard.paths';
 const DND_MIME = 'application/vscode.tree.pinboard';
 
-function isDirectory(p: string): boolean {
-  try { return fs.statSync(p).isDirectory(); } catch { return false; }
-}
-
+// Sync stat used only at startup/scope-change (loadFromStorage), not during tree rendering.
 function pathExists(p: string): boolean {
   try { fs.statSync(p); return true; } catch { return false; }
 }
@@ -109,7 +106,7 @@ export class PinboardProvider
     const paths = this.storage.get<string[]>(STATE_KEY, []);
     const valid = paths.filter(pathExists);
     if (valid.length !== paths.length) {
-      this.storage.update(STATE_KEY, valid);
+      void this.storage.update(STATE_KEY, valid);
     }
     return valid;
   }
@@ -125,20 +122,18 @@ export class PinboardProvider
     return element;
   }
 
-  getChildren(element?: AnyItem): AnyItem[] {
+  async getChildren(element?: AnyItem): Promise<AnyItem[]> {
     if (!element) {
       const openPaths = new Set(
         (vscode.workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
       );
-      return this.pinnedPaths.map((p, index) => {
-        const dir = isDirectory(p);
-        return new PinnedItemRoot(
-          p,
-          dir,
-          openPaths.has(p),
-          this.getPinnedItemPosition(index)
-        );
-      });
+      return Promise.all(
+        this.pinnedPaths.map(async (p, index) => {
+          let dir = false;
+          try { dir = (await fs.promises.stat(p)).isDirectory(); } catch { /* treated as file */ }
+          return new PinnedItemRoot(p, dir, openPaths.has(p), this.getPinnedItemPosition(index));
+        })
+      );
     }
 
     // File roots and nested files have no children
@@ -147,7 +142,7 @@ export class PinboardProvider
     const dirPath = element.itemPath;
 
     try {
-      const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
       return entries
         .filter(e => !e.name.startsWith('.'))
         .sort((a, b) => {
@@ -172,7 +167,7 @@ export class PinboardProvider
     );
   }
 
-  handleDrop(target: AnyItem | undefined, dataTransfer: vscode.DataTransfer): void {
+  async handleDrop(target: AnyItem | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
     const item = dataTransfer.get(DND_MIME);
     if (!item) return;
     const dragged: string[] = item.value;
@@ -189,7 +184,7 @@ export class PinboardProvider
       remaining.push(...dragged);
     }
     this.pinnedPaths = remaining;
-    this.persist();
+    await this.persist();
     this.refresh();
   }
 
@@ -210,12 +205,12 @@ export class PinboardProvider
         changed = true;
       }
     }
-    if (changed) { this.persist(); this.refresh(); }
+    if (changed) { await this.persist(); this.refresh(); }
   }
 
-  removeItem(item: PinnedItemRoot): void {
+  async removeItem(item: PinnedItemRoot): Promise<void> {
     this.pinnedPaths = this.pinnedPaths.filter(p => p !== item.itemPath);
-    this.persist();
+    await this.persist();
     this.refresh();
   }
 
@@ -227,16 +222,23 @@ export class PinboardProvider
       valueSelection: [0, oldName.lastIndexOf('.') > 0 ? oldName.lastIndexOf('.') : oldName.length],
       validateInput: v => v.trim() ? undefined : 'Name cannot be empty',
     });
-    if (!newName || newName === oldName) return;
-    const newItemPath = path.join(path.dirname(item.itemPath), newName);
-    await vscode.workspace.fs.rename(
-      vscode.Uri.file(item.itemPath),
-      vscode.Uri.file(newItemPath)
-    );
+    if (!newName) return;
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) return;
+    const newItemPath = path.join(path.dirname(item.itemPath), trimmed);
+    try {
+      await vscode.workspace.fs.rename(
+        vscode.Uri.file(item.itemPath),
+        vscode.Uri.file(newItemPath)
+      );
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to rename: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
     this.pinnedPaths = this.pinnedPaths.map(p =>
       p === item.itemPath ? newItemPath : p
     );
-    this.persist();
+    await this.persist();
     this.refresh();
   }
 
@@ -245,12 +247,17 @@ export class PinboardProvider
     const label = item.isDirectory ? `Delete "${name}" and all its contents?` : `Delete "${name}"?`;
     const answer = await vscode.window.showWarningMessage(label, { modal: true }, 'Move to Trash');
     if (answer !== 'Move to Trash') return;
-    await vscode.workspace.fs.delete(vscode.Uri.file(item.itemPath), {
-      recursive: true,
-      useTrash: true,
-    });
+    try {
+      await vscode.workspace.fs.delete(vscode.Uri.file(item.itemPath), {
+        recursive: true,
+        useTrash: true,
+      });
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to delete: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
     this.pinnedPaths = this.pinnedPaths.filter(p => p !== item.itemPath);
-    this.persist();
+    await this.persist();
     this.refresh();
   }
 
@@ -262,30 +269,30 @@ export class PinboardProvider
     );
   }
 
-  moveItemUp(item: PinnedItemRoot): void {
+  async moveItemUp(item: PinnedItemRoot): Promise<void> {
     const index = this.pinnedPaths.indexOf(item.itemPath);
     if (index <= 0) return;
     const reordered = [...this.pinnedPaths];
     [reordered[index - 1], reordered[index]] = [reordered[index], reordered[index - 1]];
     this.pinnedPaths = reordered;
-    this.persist();
+    await this.persist();
     this.refresh();
   }
 
-  moveItemDown(item: PinnedItemRoot): void {
+  async moveItemDown(item: PinnedItemRoot): Promise<void> {
     const index = this.pinnedPaths.indexOf(item.itemPath);
     if (index < 0 || index >= this.pinnedPaths.length - 1) return;
     const reordered = [...this.pinnedPaths];
     [reordered[index], reordered[index + 1]] = [reordered[index + 1], reordered[index]];
     this.pinnedPaths = reordered;
-    this.persist();
+    await this.persist();
     this.refresh();
   }
 
-  pinFromExplorer(uri: vscode.Uri): void {
+  async pinFromExplorer(uri: vscode.Uri): Promise<void> {
     if (!this.pinnedPaths.includes(uri.fsPath)) {
       this.pinnedPaths.push(uri.fsPath);
-      this.persist();
+      await this.persist();
       this.refresh();
     }
   }
@@ -293,10 +300,9 @@ export class PinboardProvider
   // ── File / directory commands ──────────────────────────────────────────────
 
   async openToSide(item: FileSystemItem | PinnedItemRoot): Promise<void> {
-    const p = item.kind === 'root' ? item.itemPath : item.itemPath;
     await vscode.commands.executeCommand(
       'vscode.open',
-      vscode.Uri.file(p),
+      vscode.Uri.file(item.itemPath),
       { viewColumn: vscode.ViewColumn.Beside }
     );
   }
@@ -318,12 +324,19 @@ export class PinboardProvider
       valueSelection: [0, oldName.lastIndexOf('.') > 0 ? oldName.lastIndexOf('.') : oldName.length],
       validateInput: v => v.trim() ? undefined : 'Name cannot be empty',
     });
-    if (!newName || newName === oldName) return;
-    const newPath = path.join(path.dirname(item.itemPath), newName);
-    await vscode.workspace.fs.rename(
-      vscode.Uri.file(item.itemPath),
-      vscode.Uri.file(newPath)
-    );
+    if (!newName) return;
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) return;
+    const newPath = path.join(path.dirname(item.itemPath), trimmed);
+    try {
+      await vscode.workspace.fs.rename(
+        vscode.Uri.file(item.itemPath),
+        vscode.Uri.file(newPath)
+      );
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to rename: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
     this.refresh();
   }
 
@@ -335,10 +348,15 @@ export class PinboardProvider
       'Move to Trash'
     );
     if (answer !== 'Move to Trash') return;
-    await vscode.workspace.fs.delete(vscode.Uri.file(item.itemPath), {
-      recursive: true,
-      useTrash: true,
-    });
+    try {
+      await vscode.workspace.fs.delete(vscode.Uri.file(item.itemPath), {
+        recursive: true,
+        useTrash: true,
+      });
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to delete: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
     this.refresh();
   }
 
@@ -347,7 +365,12 @@ export class PinboardProvider
     const name = await vscode.window.showInputBox({ prompt: 'New file name' });
     if (!name?.trim()) return;
     const newPath = path.join(dirPath, name.trim());
-    await vscode.workspace.fs.writeFile(vscode.Uri.file(newPath), new Uint8Array());
+    try {
+      await vscode.workspace.fs.writeFile(vscode.Uri.file(newPath), new Uint8Array());
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to create file: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
     this.refresh();
     await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(newPath));
   }
@@ -357,13 +380,19 @@ export class PinboardProvider
     const name = await vscode.window.showInputBox({ prompt: 'New folder name' });
     if (!name?.trim()) return;
     const newPath = path.join(dirPath, name.trim());
-    await vscode.workspace.fs.createDirectory(vscode.Uri.file(newPath));
+    try {
+      await vscode.workspace.fs.createDirectory(vscode.Uri.file(newPath));
+    } catch (err) {
+      vscode.window.showErrorMessage(`Failed to create folder: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
     this.refresh();
   }
 
   openInTerminal(item: FileSystemItem | PinnedItemRoot): void {
     const dirPath = item.isDirectory ? item.itemPath : path.dirname(item.itemPath);
-    const terminal = vscode.window.createTerminal({ cwd: dirPath });
+    const existing = vscode.window.terminals.find(t => t.creationOptions && 'cwd' in t.creationOptions && t.creationOptions.cwd === dirPath);
+    const terminal = existing ?? vscode.window.createTerminal({ cwd: dirPath });
     terminal.show();
   }
 
@@ -394,8 +423,8 @@ export class PinboardProvider
     this._onDidChangeTreeData.fire(undefined);
   }
 
-  private persist(): void {
-    this.storage.update(STATE_KEY, this.pinnedPaths);
+  private async persist(): Promise<void> {
+    await this.storage.update(STATE_KEY, this.pinnedPaths);
   }
 
   private getPinnedItemPosition(index: number): 'single' | 'first' | 'middle' | 'last' {

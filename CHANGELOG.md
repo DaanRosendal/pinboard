@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.10
+
+- Fix `alreadyOpen` command not appearing in the tree: active (currently open) folders now show the window indicator icon inline instead of the "Open in New Window" button.
+- Fix `renamePinnedItem` and `rename` ignoring leading/trailing whitespace in the new name.
+- Fix disposable leak: `onDidChangeTreeData` listener is now properly tracked in `context.subscriptions`.
+- Await all `storage.update()` calls so pin state is never silently lost on quick shutdown.
+- Add error notifications for failed file system operations (rename, delete, create).
+- Reuse existing terminal instances in "Open in Integrated Terminal" instead of always creating a new one.
+- Switch tree rendering (`getChildren`) to async I/O so the extension host event loop is not blocked.
+- Fix redundant no-op ternary in `openToSide`.
+- Update "Reveal in Finder" command title to "Reveal in File Manager" for cross-platform correctness.
+- Fix configuration descriptions that incorrectly said "folders" when files are also supported.
+
 ## 0.0.9
 
 - Add the Open VSX install link to the README marketplace section.
