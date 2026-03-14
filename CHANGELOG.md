@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.11
+
+- Add context menu when right-clicking empty space in the Pinboard panel, exposing the global controls: scope toggle (Global ↔ Workspace), Add File or Folder, Refresh, and Collapse All.
+
 ## 0.0.10
 
 - Fix `alreadyOpen` command not appearing in the tree: active (currently open) folders now show the window indicator icon inline instead of the "Open in New Window" button.

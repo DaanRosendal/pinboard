@@ -3,7 +3,7 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
   "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, and quick actions",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [
@@ -193,6 +193,10 @@
       {
         "command": "pinboard.deletePinnedFolder",
         "title": "Delete"
+      },
+      {
+        "command": "pinboard.collapseAll",
+        "title": "Collapse All"
       }
     ],
     "menus": {
@@ -219,6 +223,31 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "pinboard.switchToWorkspace",
+          "when": "view == pinboard && !viewItem && pinboard.isGlobalScope",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pinboard.switchToGlobal",
+          "when": "view == pinboard && !viewItem && !pinboard.isGlobalScope",
+          "group": "navigation@1"
+        },
+        {
+          "command": "pinboard.addFolder",
+          "when": "view == pinboard && !viewItem",
+          "group": "navigation@2"
+        },
+        {
+          "command": "pinboard.refresh",
+          "when": "view == pinboard && !viewItem",
+          "group": "navigation@3"
+        },
+        {
+          "command": "pinboard.collapseAll",
+          "when": "view == pinboard && !viewItem",
+          "group": "navigation@4"
+        },
         {
           "command": "pinboard.openInNewWindow",
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast)",
