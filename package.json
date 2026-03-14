@@ -104,12 +104,12 @@
       {
         "command": "pinboard.unpinFolder",
         "title": "Unpin Folder",
-        "icon": "$(remove)"
+        "icon": "$(close)"
       },
       {
         "command": "pinboard.unpinFile",
         "title": "Unpin File",
-        "icon": "$(remove)"
+        "icon": "$(close)"
       },
       {
         "command": "pinboard.openInNewWindow",
@@ -220,34 +220,19 @@
       ],
       "view/item/context": [
         {
+          "command": "pinboard.openInNewWindow",
+          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast)",
+          "group": "inline@1"
+        },
+        {
           "command": "pinboard.unpinFolder",
           "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast)",
-          "group": "inline@3"
+          "group": "inline@2"
         },
         {
           "command": "pinboard.unpinFile",
           "when": "view == pinboard && (viewItem == pinnedFileRootSingle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
-          "group": "inline@3"
-        },
-        {
-          "command": "pinboard.openInNewWindow",
-          "when": "view == pinboard && (viewItem == pinnedFolderSingle || viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast)",
-          "group": "inline@2"
-        },
-        {
-          "command": "pinboard.alreadyOpen",
-          "when": "view == pinboard && (viewItem == pinnedFolderActiveSingle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast)",
-          "group": "inline@2"
-        },
-        {
-          "command": "pinboard.moveUp",
-          "when": "view == pinboard && (viewItem == pinnedFolderMiddle || viewItem == pinnedFolderLast || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFolderActiveLast || viewItem == pinnedFileRootMiddle || viewItem == pinnedFileRootLast)",
-          "group": "inline@4"
-        },
-        {
-          "command": "pinboard.moveDown",
-          "when": "view == pinboard && (viewItem == pinnedFolderFirst || viewItem == pinnedFolderMiddle || viewItem == pinnedFolderActiveFirst || viewItem == pinnedFolderActiveMiddle || viewItem == pinnedFileRootFirst || viewItem == pinnedFileRootMiddle)",
-          "group": "inline@5"
+          "group": "inline@1"
         },
         {
           "command": "pinboard.newFile",
