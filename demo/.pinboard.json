@@ -1,0 +1,16 @@
+{
+  "presets": [
+    {
+      "name": "Frontend Team",
+      "paths": ["packages/frontend/src", "packages/shared", "docs/frontend"]
+    },
+    {
+      "name": "Backend Team",
+      "paths": ["packages/backend", "packages/api", "packages/shared"]
+    },
+    {
+      "name": "Docs & Scripts",
+      "paths": ["docs", "scripts", ".github"]
+    }
+  ]
+}

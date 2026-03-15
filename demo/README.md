@@ -1,16 +1,34 @@
-# Pinboard Demo
+# Acme Platform — Demo Workspace
 
-Use this directory to create Marketplace screenshots and quick manual demos.
+A fictional full-stack TypeScript monorepo used for Pinboard screenshots and manual demos.
 
-Suggested pins:
+## Structure
 
-- `demo/client`
-- `demo/notes/launch-plan.md`
-- `demo/snippets/pinboard-cheatsheet.txt`
+```
+packages/
+  frontend/   React + Vite app
+  backend/    Express API server
+  api/        Shared API contract & OpenAPI spec
+  shared/     Types, utils, constants
+docs/
+  frontend/   Component guide, styling, routing
+  backend/    Architecture, database, auth flow
+  api/        Endpoint reference, changelog
+scripts/      Build, deploy, seed helpers
+.github/      CI workflows, PR template
+```
 
-Suggested screenshot setup:
+## Demo setup
 
-1. Open this repo in VS Code.
-2. Pin the suggested folder and files above.
-3. Expand `demo/client` in the Pinboard view so the nested structure is visible.
-4. Keep the Explorer width fairly narrow so the pinned actions remain visible on hover.
+1. Open this repo in VS Code
+2. Switch Pinboard to **Workspace** scope
+3. Click the preset button and apply **Frontend Team** or **Backend Team**
+4. Expand `packages/frontend/src` to show nested file browsing
+
+## Presets (`.pinboard.json`)
+
+| Preset | Pins |
+|--------|------|
+| Frontend Team | `packages/frontend/src`, `packages/shared`, `docs/frontend` |
+| Backend Team | `packages/backend`, `packages/api`, `packages/shared` |
+| Docs & Scripts | `docs`, `scripts`, `.github` |

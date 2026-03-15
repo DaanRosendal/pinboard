@@ -1,0 +1,25 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Build & push Docker image
+        run: |
+          docker build -t ${{ secrets.REGISTRY }}/backend:${{ github.sha }} ./packages/backend
+          docker push ${{ secrets.REGISTRY }}/backend:${{ github.sha }}
+      - name: Deploy to production
+        run: bash scripts/deploy.sh production ${{ github.sha }}

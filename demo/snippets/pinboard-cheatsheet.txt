@@ -1,13 +1,24 @@
 Pinboard quick demo
 ===================
 
-Pin:
-- demo/client
-- demo/notes/launch-plan.md
-- demo/snippets/pinboard-cheatsheet.txt
+Preset: "Frontend Team"
+  pins: packages/frontend/src, packages/shared, docs/frontend
 
-Show:
-- inline unpin
-- move up / move down
-- open in new window
-- nested folder browsing
+Preset: "Backend Team"
+  pins: packages/backend, packages/api, packages/shared
+
+Preset: "Docs & Scripts"
+  pins: docs, scripts, .github
+
+Manual pins (global scope):
+  packages/frontend/src/components/Button.tsx
+  packages/backend/src/db/schema.ts
+  docs/onboarding.md
+
+Things to show:
+  - apply a preset (switch to Workspace scope first)
+  - inline unpin button on hover
+  - move up / move down reordering
+  - open in new window
+  - nested folder browsing (expand packages/frontend/src)
+  - drag to reorder pinned roots
