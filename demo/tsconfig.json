@@ -4,13 +4,6 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "strict": true,
-    "skipLibCheck": true,
-    "composite": true
-  },
-  "references": [
-    { "path": "packages/shared" },
-    { "path": "packages/api" },
-    { "path": "packages/backend" },
-    { "path": "packages/frontend" }
-  ]
+    "skipLibCheck": true
+  }
 }
