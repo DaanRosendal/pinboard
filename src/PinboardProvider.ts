@@ -89,9 +89,12 @@ export class PinboardProvider
   readonly dragMimeTypes = [DND_MIME];
 
   private pins: Pin[];
+  private _fsWatchers: vscode.FileSystemWatcher[] = [];
+  private _refreshTimer: NodeJS.Timeout | undefined;
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.pins = this.loadFromStorage();
+    this.rebuildWatchers();
   }
 
   // ── Scope helpers ──────────────────────────────────────────────────────────
@@ -500,7 +503,7 @@ export class PinboardProvider
       )
       .filter(pin => pathExists(pin.path));
     await this.context.workspaceState.update(STATE_KEY, this.pins);
-    this._onDidChangeTreeData.fire(undefined);
+    this.refresh();
   }
 
   async openWorkspaceConfig(): Promise<void> {
@@ -540,7 +543,37 @@ export class PinboardProvider
   }
 
   refresh(): void {
+    this.rebuildWatchers();
     this._onDidChangeTreeData.fire(undefined);
+  }
+
+  dispose(): void {
+    if (this._refreshTimer) clearTimeout(this._refreshTimer);
+    for (const w of this._fsWatchers) w.dispose();
+    this._fsWatchers = [];
+  }
+
+  private rebuildWatchers(): void {
+    for (const w of this._fsWatchers) w.dispose();
+    this._fsWatchers = [];
+    for (const pin of this.pins) {
+      let isDir = false;
+      try { isDir = fs.statSync(pin.path).isDirectory(); } catch { continue; }
+      const pattern = isDir
+        ? new vscode.RelativePattern(vscode.Uri.file(pin.path), '**/*')
+        : new vscode.RelativePattern(vscode.Uri.file(path.dirname(pin.path)), path.basename(pin.path));
+      const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+      watcher.onDidCreate(() => this.fireChangeDebounced());
+      watcher.onDidDelete(() => this.fireChangeDebounced());
+      this._fsWatchers.push(watcher);
+    }
+  }
+
+  private fireChangeDebounced(): void {
+    if (this._refreshTimer) clearTimeout(this._refreshTimer);
+    this._refreshTimer = setTimeout(() => {
+      this._onDidChangeTreeData.fire(undefined);
+    }, 300);
   }
 
   private getWorkspaceRoot(): string | null {

@@ -74,6 +74,10 @@ This is, for instance, useful in large monorepos. Commit a `.pinboard.json` file
 
 All paths are relative to the workspace root. Paths that don't exist on disk are silently ignored. The extension never modifies `.pinboard.json`.
 
+### Auto-refresh
+
+The panel updates automatically when files or folders are created or deleted inside a pinned directory — no manual refresh needed.
+
 ### Context menu
 
 Right-click any item for contextual actions:

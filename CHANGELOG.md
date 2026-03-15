@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.22
+
+- Auto-refresh the panel when files or folders are created or deleted inside a pinned directory, using OS-native file system watchers (no polling).
+
 ## 0.0.21
 
 - Rename label style option from "Name" to "Directory Name" in the command title, status bar message, and settings descriptions for clarity.

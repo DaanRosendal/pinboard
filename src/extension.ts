@@ -38,6 +38,7 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     treeView,
     presetsWatcher,
+    { dispose: () => provider.dispose() },
     provider.onDidChangeTreeData(syncView),
 
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
