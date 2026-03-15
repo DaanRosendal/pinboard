@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.20
+
+- Add per-item aliases: right-click any pinned root item and choose **Set Alias…** to give it a custom display name. The alias replaces the default label in the panel; the underlying path is unchanged. Use **Edit Alias…** to change it or **Remove Alias** to revert.
+- Add `pinboard.labelStyle` setting: display pinned root items as file/folder name (default) or as a path relative to the workspace root — useful in monorepos where multiple pinned folders share the same name. Aliases always take precedence.
+- Add **Toggle Label Style (Name / Relative Path)** to the command palette to flip `labelStyle` with a status bar confirmation.
+- Add **Open Workspace Config** to the command palette to open `.pinboard.json`, with an offer to create a starter file if none exists.
+- Expose **Add File or Folder**, **Refresh**, scope-switch, **Apply Workspace Preset…**, and **Toggle Label Style** in the command palette under the `Pinboard:` category prefix.
+- Support `{ "path": "...", "alias": "..." }` objects in `.pinboard.json` preset paths so presets can ship named aliases to teammates.
+
 ## 0.0.19
 
 - Add first-time setup note to README about panel position.

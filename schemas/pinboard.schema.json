@@ -16,8 +16,21 @@
           },
           "paths": {
             "type": "array",
-            "description": "Relative paths (from workspace root) to pin.",
-            "items": { "type": "string" }
+            "description": "Paths to pin (relative to workspace root). Each entry is a plain path string or an object with a path and optional alias.",
+            "items": {
+              "oneOf": [
+                { "type": "string" },
+                {
+                  "type": "object",
+                  "required": ["path"],
+                  "properties": {
+                    "path": { "type": "string", "description": "Relative path to pin." },
+                    "alias": { "type": "string", "description": "Custom display name shown in the Pinboard panel." }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
           }
         },
         "additionalProperties": false

@@ -2,11 +2,19 @@
   "presets": [
     {
       "name": "Frontend Team",
-      "paths": ["packages/frontend/src", "packages/shared", "docs/frontend"]
+      "paths": [
+        { "path": "packages/frontend/src", "alias": "Frontend Source" },
+        { "path": "packages/shared", "alias": "Shared Lib" },
+        "docs/frontend"
+      ]
     },
     {
       "name": "Backend Team",
-      "paths": ["packages/backend", "packages/api", "packages/shared"]
+      "paths": [
+        { "path": "packages/backend", "alias": "Backend Service" },
+        { "path": "packages/api", "alias": "REST API" },
+        { "path": "packages/shared", "alias": "Shared Lib" }
+      ]
     },
     {
       "name": "Docs & Scripts",

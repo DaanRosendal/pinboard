@@ -10,6 +10,9 @@ function pathExists(p: string): boolean {
   try { fs.statSync(p); return true; } catch { return false; }
 }
 
+export type Pin = { path: string; alias?: string };
+type PresetEntry = string | { path: string; alias?: string };
+
 export class PinnedItemRoot extends vscode.TreeItem {
   readonly kind = 'root' as const;
 
@@ -17,10 +20,12 @@ export class PinnedItemRoot extends vscode.TreeItem {
     public readonly itemPath: string,
     public readonly isDirectory: boolean,
     isCurrentWorkspace: boolean,
-    position: 'single' | 'first' | 'middle' | 'last'
+    position: 'single' | 'first' | 'middle' | 'last',
+    label: string,
+    hasAlias: boolean
   ) {
     super(
-      path.basename(itemPath),
+      label,
       isDirectory
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None
@@ -28,11 +33,12 @@ export class PinnedItemRoot extends vscode.TreeItem {
     this.tooltip = itemPath;
     this.resourceUri = vscode.Uri.file(itemPath);
 
+    const aliasSuffix = hasAlias ? 'Aliased' : '';
     if (isDirectory) {
       const base = isCurrentWorkspace ? 'pinnedFolderActive' : 'pinnedFolder';
-      this.contextValue = `${base}${capitalize(position)}`;
+      this.contextValue = `${base}${capitalize(position)}${aliasSuffix}`;
     } else {
-      this.contextValue = `pinnedFileRoot${capitalize(position)}`;
+      this.contextValue = `pinnedFileRoot${capitalize(position)}${aliasSuffix}`;
       this.command = {
         command: 'vscode.open',
         title: 'Open File',
@@ -82,10 +88,10 @@ export class PinboardProvider
   readonly dropMimeTypes = [DND_MIME];
   readonly dragMimeTypes = [DND_MIME];
 
-  private pinnedPaths: string[];
+  private pins: Pin[];
 
   constructor(private readonly context: vscode.ExtensionContext) {
-    this.pinnedPaths = this.loadFromStorage();
+    this.pins = this.loadFromStorage();
   }
 
   // ── Scope helpers ──────────────────────────────────────────────────────────
@@ -102,17 +108,17 @@ export class PinboardProvider
       : this.context.globalState;
   }
 
-  private loadFromStorage(): string[] {
-    const paths = this.storage.get<string[]>(STATE_KEY, []);
-    const valid = paths.filter(pathExists);
-    if (valid.length !== paths.length) {
+  private loadFromStorage(): Pin[] {
+    const pins = this.storage.get<Pin[]>(STATE_KEY, []);
+    const valid = pins.filter(pin => pathExists(pin.path));
+    if (valid.length !== pins.length) {
       void this.storage.update(STATE_KEY, valid);
     }
     return valid;
   }
 
   onScopeChanged(): void {
-    this.pinnedPaths = this.loadFromStorage();
+    this.pins = this.loadFromStorage();
     this.refresh();
   }
 
@@ -128,10 +134,15 @@ export class PinboardProvider
         (vscode.workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
       );
       return Promise.all(
-        this.pinnedPaths.map(async (p, index) => {
+        this.pins.map(async (pin, index) => {
           let dir = false;
-          try { dir = (await fs.promises.stat(p)).isDirectory(); } catch { /* treated as file */ }
-          return new PinnedItemRoot(p, dir, openPaths.has(p), this.getPinnedItemPosition(index));
+          try { dir = (await fs.promises.stat(pin.path)).isDirectory(); } catch { /* treated as file */ }
+          return new PinnedItemRoot(
+            pin.path, dir, openPaths.has(pin.path),
+            this.getPinnedItemPosition(index),
+            this.getLabelForPath(pin),
+            !!pin.alias
+          );
         })
       );
     }
@@ -171,19 +182,20 @@ export class PinboardProvider
     const item = dataTransfer.get(DND_MIME);
     if (!item) return;
     const dragged: string[] = item.value;
-    const remaining = this.pinnedPaths.filter(p => !dragged.includes(p));
+    const remaining = this.pins.filter(p => !dragged.includes(p.path));
+    const draggedPins = dragged.map(d => this.pins.find(p => p.path === d)!).filter(Boolean);
     const dropPath = target?.kind === 'root' ? target.itemPath : undefined;
     if (dropPath) {
-      const insertAt = remaining.indexOf(dropPath);
+      const insertAt = remaining.findIndex(p => p.path === dropPath);
       if (insertAt >= 0) {
-        remaining.splice(insertAt, 0, ...dragged);
+        remaining.splice(insertAt, 0, ...draggedPins);
       } else {
-        remaining.push(...dragged);
+        remaining.push(...draggedPins);
       }
     } else {
-      remaining.push(...dragged);
+      remaining.push(...draggedPins);
     }
-    this.pinnedPaths = remaining;
+    this.pins = remaining;
     await this.persist();
     this.refresh();
   }
@@ -200,8 +212,8 @@ export class PinboardProvider
     if (!uris || uris.length === 0) return;
     let changed = false;
     for (const uri of uris) {
-      if (!this.pinnedPaths.includes(uri.fsPath)) {
-        this.pinnedPaths.push(uri.fsPath);
+      if (!this.pins.some(p => p.path === uri.fsPath)) {
+        this.pins.push({ path: uri.fsPath });
         changed = true;
       }
     }
@@ -209,7 +221,7 @@ export class PinboardProvider
   }
 
   async removeItem(item: PinnedItemRoot): Promise<void> {
-    this.pinnedPaths = this.pinnedPaths.filter(p => p !== item.itemPath);
+    this.pins = this.pins.filter(p => p.path !== item.itemPath);
     await this.persist();
     this.refresh();
   }
@@ -235,8 +247,8 @@ export class PinboardProvider
       vscode.window.showErrorMessage(`Failed to rename: ${err instanceof Error ? err.message : String(err)}`);
       return;
     }
-    this.pinnedPaths = this.pinnedPaths.map(p =>
-      p === item.itemPath ? newItemPath : p
+    this.pins = this.pins.map(p =>
+      p.path === item.itemPath ? { ...p, path: newItemPath } : p
     );
     await this.persist();
     this.refresh();
@@ -256,7 +268,7 @@ export class PinboardProvider
       vscode.window.showErrorMessage(`Failed to delete: ${err instanceof Error ? err.message : String(err)}`);
       return;
     }
-    this.pinnedPaths = this.pinnedPaths.filter(p => p !== item.itemPath);
+    this.pins = this.pins.filter(p => p.path !== item.itemPath);
     await this.persist();
     this.refresh();
   }
@@ -270,21 +282,21 @@ export class PinboardProvider
   }
 
   async moveItemUp(item: PinnedItemRoot): Promise<void> {
-    const index = this.pinnedPaths.indexOf(item.itemPath);
+    const index = this.pins.findIndex(p => p.path === item.itemPath);
     if (index <= 0) return;
-    const reordered = [...this.pinnedPaths];
+    const reordered = [...this.pins];
     [reordered[index - 1], reordered[index]] = [reordered[index], reordered[index - 1]];
-    this.pinnedPaths = reordered;
+    this.pins = reordered;
     await this.persist();
     this.refresh();
   }
 
   async moveItemDown(item: PinnedItemRoot): Promise<void> {
-    const index = this.pinnedPaths.indexOf(item.itemPath);
-    if (index < 0 || index >= this.pinnedPaths.length - 1) return;
-    const reordered = [...this.pinnedPaths];
+    const index = this.pins.findIndex(p => p.path === item.itemPath);
+    if (index < 0 || index >= this.pins.length - 1) return;
+    const reordered = [...this.pins];
     [reordered[index], reordered[index + 1]] = [reordered[index + 1], reordered[index]];
-    this.pinnedPaths = reordered;
+    this.pins = reordered;
     await this.persist();
     this.refresh();
   }
@@ -294,11 +306,40 @@ export class PinboardProvider
       await this.addItem();
       return;
     }
-    if (!this.pinnedPaths.includes(uri.fsPath)) {
-      this.pinnedPaths.push(uri.fsPath);
+    if (!this.pins.some(p => p.path === uri.fsPath)) {
+      this.pins.push({ path: uri.fsPath });
       await this.persist();
       this.refresh();
     }
+  }
+
+  async setAlias(item: PinnedItemRoot): Promise<void> {
+    const pin = this.pins.find(p => p.path === item.itemPath);
+    if (!pin) return;
+    const currentAlias = pin.alias ?? '';
+    const result = await vscode.window.showInputBox({
+      prompt: 'Set display alias (leave empty to remove)',
+      value: currentAlias,
+      placeHolder: path.basename(item.itemPath),
+    });
+    if (result === undefined) return;
+    const trimmed = result.trim();
+    if (trimmed === currentAlias) return;
+    if (trimmed) {
+      pin.alias = trimmed;
+    } else {
+      delete pin.alias;
+    }
+    await this.persist();
+    this.refresh();
+  }
+
+  async removeAlias(item: PinnedItemRoot): Promise<void> {
+    const pin = this.pins.find(p => p.path === item.itemPath);
+    if (!pin || !pin.alias) return;
+    delete pin.alias;
+    await this.persist();
+    this.refresh();
   }
 
   // ── File / directory commands ──────────────────────────────────────────────
@@ -419,7 +460,7 @@ export class PinboardProvider
 
   // ── Preset commands ────────────────────────────────────────────────────────
 
-  readPresets(): Array<{ name: string; paths: string[] }> | null {
+  readPresets(): Array<{ name: string; paths: PresetEntry[] }> | null {
     const root = this.getWorkspaceRoot();
     if (!root) return null;
     const filePath = path.join(root, '.pinboard.json');
@@ -433,11 +474,14 @@ export class PinboardProvider
       ) return null;
       const presets = (parsed as { presets: unknown[] }).presets;
       const valid = presets.filter(
-        (p): p is { name: string; paths: string[] } =>
+        (p): p is { name: string; paths: PresetEntry[] } =>
           typeof p === 'object' && p !== null &&
           typeof (p as { name?: unknown }).name === 'string' &&
           Array.isArray((p as { paths?: unknown }).paths) &&
-          ((p as { paths: unknown[] }).paths).every(x => typeof x === 'string')
+          ((p as { paths: unknown[] }).paths).every(x =>
+            typeof x === 'string' ||
+            (typeof x === 'object' && x !== null && typeof (x as { path?: unknown }).path === 'string')
+          )
       );
       return valid.length > 0 ? valid : null;
     } catch {
@@ -445,16 +489,39 @@ export class PinboardProvider
     }
   }
 
-  async applyPreset(preset: { name: string; paths: string[] }): Promise<void> {
+  async applyPreset(preset: { name: string; paths: PresetEntry[] }): Promise<void> {
     if (this.getScope() !== 'workspace') return;
     const root = this.getWorkspaceRoot();
     if (!root) return;
-    const resolved = preset.paths
-      .map(p => path.join(root, p))
-      .filter(pathExists);
-    this.pinnedPaths = resolved;
-    await this.context.workspaceState.update(STATE_KEY, resolved);
+    this.pins = preset.paths
+      .map(entry => typeof entry === 'string'
+        ? { path: path.join(root, entry) }
+        : { path: path.join(root, entry.path), ...(entry.alias ? { alias: entry.alias } : {}) }
+      )
+      .filter(pin => pathExists(pin.path));
+    await this.context.workspaceState.update(STATE_KEY, this.pins);
     this._onDidChangeTreeData.fire(undefined);
+  }
+
+  async openWorkspaceConfig(): Promise<void> {
+    const root = this.getWorkspaceRoot();
+    if (!root) {
+      vscode.window.showInformationMessage('No workspace folder is open.');
+      return;
+    }
+    const filePath = path.join(root, '.pinboard.json');
+    if (!fs.existsSync(filePath)) {
+      const answer = await vscode.window.showInformationMessage(
+        'No .pinboard.json found in workspace root. Create one?',
+        'Create'
+      );
+      if (answer !== 'Create') return;
+      await vscode.workspace.fs.writeFile(
+        vscode.Uri.file(filePath),
+        Buffer.from(JSON.stringify({ presets: [] }, null, 2), 'utf8')
+      );
+    }
+    await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(filePath));
   }
 
   updatePresetsContext(): void {
@@ -469,7 +536,7 @@ export class PinboardProvider
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   isEmpty(): boolean {
-    return this.pinnedPaths.length === 0;
+    return this.pins.length === 0;
   }
 
   refresh(): void {
@@ -481,14 +548,29 @@ export class PinboardProvider
   }
 
   private async persist(): Promise<void> {
-    await this.storage.update(STATE_KEY, this.pinnedPaths);
+    await this.storage.update(STATE_KEY, this.pins);
   }
 
   private getPinnedItemPosition(index: number): 'single' | 'first' | 'middle' | 'last' {
-    if (this.pinnedPaths.length === 1) return 'single';
+    if (this.pins.length === 1) return 'single';
     if (index === 0) return 'first';
-    if (index === this.pinnedPaths.length - 1) return 'last';
+    if (index === this.pins.length - 1) return 'last';
     return 'middle';
+  }
+
+  private getLabelForPath(pin: Pin): string {
+    if (pin.alias) return pin.alias;
+    const style = vscode.workspace
+      .getConfiguration('pinboard')
+      .get<'name' | 'relativePath'>('labelStyle', 'name');
+    if (style === 'relativePath') {
+      const wsFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(pin.path));
+      if (wsFolder) {
+        const rel = path.relative(wsFolder.uri.fsPath, pin.path);
+        return rel || path.basename(pin.path);
+      }
+    }
+    return path.basename(pin.path);
   }
 }
 

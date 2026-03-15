@@ -51,6 +51,9 @@ export function activate(context: vscode.ExtensionContext): void {
         syncScopeContext();
         provider.updatePresetsContext();
       }
+      if (e.affectsConfiguration('pinboard.labelStyle')) {
+        provider.refresh();
+      }
     }),
 
     vscode.commands.registerCommand('pinboard.refresh', () =>
@@ -128,6 +131,31 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pinboard.copyRelativePath', (item: FileSystemItem | PinnedItemRoot) =>
       provider.copyRelativePath(item)
     ),
+
+    vscode.commands.registerCommand('pinboard.setAlias', (item: PinnedItemRoot) =>
+      provider.setAlias(item)
+    ),
+    vscode.commands.registerCommand('pinboard.editAlias', (item: PinnedItemRoot) =>
+      provider.setAlias(item)
+    ),
+    vscode.commands.registerCommand('pinboard.removeAlias', (item: PinnedItemRoot) =>
+      provider.removeAlias(item)
+    ),
+
+    vscode.commands.registerCommand('pinboard.openWorkspaceConfig', () =>
+      provider.openWorkspaceConfig()
+    ),
+
+    vscode.commands.registerCommand('pinboard.toggleLabelStyle', async () => {
+      const config = vscode.workspace.getConfiguration('pinboard');
+      const current = config.get<string>('labelStyle', 'name');
+      const next = current === 'name' ? 'relativePath' : 'name';
+      await config.update('labelStyle', next, vscode.ConfigurationTarget.Global);
+      vscode.window.setStatusBarMessage(
+        `Pinboard: Label style → ${next === 'name' ? 'Name' : 'Relative Path'}`,
+        2500
+      );
+    }),
 
     vscode.commands.registerCommand('pinboard.applyPreset', async () => {
       const presets = provider.readPresets();
