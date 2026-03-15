@@ -28,17 +28,28 @@ export function activate(context: vscode.ExtensionContext): void {
 
   syncView();
   syncScopeContext();
+  provider.updatePresetsContext();
+
+  const presetsWatcher = vscode.workspace.createFileSystemWatcher('**/.pinboard.json');
+  presetsWatcher.onDidCreate(() => provider.updatePresetsContext());
+  presetsWatcher.onDidChange(() => provider.updatePresetsContext());
+  presetsWatcher.onDidDelete(() => provider.updatePresetsContext());
 
   context.subscriptions.push(
     treeView,
+    presetsWatcher,
     provider.onDidChangeTreeData(syncView),
 
-    vscode.workspace.onDidChangeWorkspaceFolders(() => provider.refresh()),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      provider.refresh();
+      provider.updatePresetsContext();
+    }),
 
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration('pinboard.scope')) {
         provider.onScopeChanged();
         syncScopeContext();
+        provider.updatePresetsContext();
       }
     }),
 
@@ -117,6 +128,31 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pinboard.copyRelativePath', (item: FileSystemItem | PinnedItemRoot) =>
       provider.copyRelativePath(item)
     ),
+
+    vscode.commands.registerCommand('pinboard.applyPreset', async () => {
+      const presets = provider.readPresets();
+      if (!presets || presets.length === 0) {
+        vscode.window.showInformationMessage('No presets found in .pinboard.json');
+        return;
+      }
+      if (provider.getScope() === 'global') {
+        vscode.window.showInformationMessage('Switch to Workspace scope to apply presets');
+        return;
+      }
+      const name = await vscode.window.showQuickPick(
+        presets.map(p => p.name),
+        { title: 'Apply Workspace Preset' }
+      );
+      if (!name) return;
+      const answer = await vscode.window.showWarningMessage(
+        `Applying preset "${name}" will replace your current workspace pinboard. Continue?`,
+        { modal: true },
+        'Apply'
+      );
+      if (answer !== 'Apply') return;
+      const selected = presets.find(p => p.name === name)!;
+      await provider.applyPreset(selected);
+    }),
   );
 }
 

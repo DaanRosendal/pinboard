@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.14
+
+- Add workspace preset pinboards: commit a `.pinboard.json` file to your workspace root defining named presets of relative paths. A `$(list-selection)` button appears in the Pinboard title bar (workspace scope only) when presets are detected, letting users apply a preset via a QuickPick and confirmation dialog. Presets are read-only — the extension never writes to `.pinboard.json`.
+- Add JSON schema for `.pinboard.json` so VS Code provides IntelliSense and validation when editing preset files.
+
 ## 0.0.13
 
 - Add a Buy Me a Coffee support button to the README using a Marketplace-safe linked image instead of an embeddable script widget.

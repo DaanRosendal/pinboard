@@ -3,7 +3,7 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
   "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, and quick actions",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [
@@ -85,8 +85,7 @@
       "explorer": [
         {
           "id": "pinboard",
-          "name": "Pinboard",
-          "order": 1
+          "name": "Pinboard"
         }
       ]
     },
@@ -193,6 +192,11 @@
       {
         "command": "pinboard.deletePinnedFolder",
         "title": "Delete"
+      },
+      {
+        "command": "pinboard.applyPreset",
+        "title": "Apply Workspace Preset...",
+        "icon": "$(list-selection)"
       }
     ],
     "menus": {
@@ -216,6 +220,11 @@
           "command": "pinboard.refresh",
           "when": "view == pinboard",
           "group": "navigation@3"
+        },
+        {
+          "command": "pinboard.applyPreset",
+          "when": "view == pinboard && !pinboard.isGlobalScope && pinboard.hasPresets",
+          "group": "navigation@0"
         }
       ],
       "view/item/context": [
@@ -315,6 +324,12 @@
           "group": "5_modify@2"
         }
       ],
+      "commandPalette": [
+        {
+          "command": "pinboard.applyPreset",
+          "when": "false"
+        }
+      ],
       "explorer/context": [
         {
           "command": "pinboard.pinFromExplorer",
@@ -327,7 +342,13 @@
           "group": "navigation@100"
         }
       ]
-    }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": "**/.pinboard.json",
+        "url": "./schemas/pinboard.schema.json"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

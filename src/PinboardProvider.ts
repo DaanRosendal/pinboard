@@ -413,6 +413,55 @@ export class PinboardProvider
     vscode.window.setStatusBarMessage(`Copied: ${relative}`, 2000);
   }
 
+  // ── Preset commands ────────────────────────────────────────────────────────
+
+  readPresets(): Array<{ name: string; paths: string[] }> | null {
+    const root = this.getWorkspaceRoot();
+    if (!root) return null;
+    const filePath = path.join(root, '.pinboard.json');
+    if (!fs.existsSync(filePath)) return null;
+    try {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      const parsed = JSON.parse(raw) as unknown;
+      if (
+        typeof parsed !== 'object' || parsed === null ||
+        !Array.isArray((parsed as { presets?: unknown }).presets)
+      ) return null;
+      const presets = (parsed as { presets: unknown[] }).presets;
+      const valid = presets.filter(
+        (p): p is { name: string; paths: string[] } =>
+          typeof p === 'object' && p !== null &&
+          typeof (p as { name?: unknown }).name === 'string' &&
+          Array.isArray((p as { paths?: unknown }).paths) &&
+          ((p as { paths: unknown[] }).paths).every(x => typeof x === 'string')
+      );
+      return valid.length > 0 ? valid : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async applyPreset(preset: { name: string; paths: string[] }): Promise<void> {
+    if (this.getScope() !== 'workspace') return;
+    const root = this.getWorkspaceRoot();
+    if (!root) return;
+    const resolved = preset.paths
+      .map(p => path.join(root, p))
+      .filter(pathExists);
+    this.pinnedPaths = resolved;
+    await this.context.workspaceState.update(STATE_KEY, resolved);
+    this._onDidChangeTreeData.fire(undefined);
+  }
+
+  updatePresetsContext(): void {
+    const presets = this.readPresets();
+    vscode.commands.executeCommand(
+      'setContext',
+      'pinboard.hasPresets',
+      presets !== null && presets.length > 0
+    );
+  }
+
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   isEmpty(): boolean {
@@ -421,6 +470,10 @@ export class PinboardProvider
 
   refresh(): void {
     this._onDidChangeTreeData.fire(undefined);
+  }
+
+  private getWorkspaceRoot(): string | null {
+    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
   }
 
   private async persist(): Promise<void> {
