@@ -3,7 +3,7 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
   "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, workspace presets, and quick actions",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [
@@ -85,7 +85,7 @@
           "default": "name",
           "enumDescriptions": [
             "Display the file or folder name only.",
-            "Display the path relative to the workspace root. Falls back to directory name if outside all workspace folders."
+            "Display the path relative to the workspace root. Falls back to folder name if outside all workspace folders."
           ],
           "description": "How pinned root items are labeled when no alias is set."
         }
@@ -127,7 +127,7 @@
       { "command": "pinboard.setAlias",            "category": "Pinboard", "title": "Set Alias…" },
       { "command": "pinboard.editAlias",           "category": "Pinboard", "title": "Edit Alias…" },
       { "command": "pinboard.removeAlias",         "category": "Pinboard", "title": "Remove Alias" },
-      { "command": "pinboard.toggleLabelStyle",     "category": "Pinboard", "title": "Toggle Label Style (Directory Name / Relative Path)" },
+      { "command": "pinboard.toggleLabelStyle",     "category": "Pinboard", "title": "Toggle Label Style (Folder Name / Relative Path)" },
       { "command": "pinboard.openWorkspaceConfig", "category": "Pinboard", "title": "Open Workspace Config" }
     ],
     "menus": {

@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.23
+
+- Rename "Directory Name" label style to "Folder Name" for consistency with the extension's own wording (command palette title, status bar message, settings description).
+- Add "Toggle label style" row to the Usage table in the README.
+
 ## 0.0.22
 
 - Auto-refresh the panel when files or folders are created or deleted inside a pinned directory, using OS-native file system watchers (no polling).

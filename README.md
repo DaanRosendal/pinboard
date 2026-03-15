@@ -106,6 +106,7 @@ Right-click any item for contextual actions:
 | Reorder            | Drag a pinned item, or right-click it and choose **Move Up** or **Move Down**                     |
 | Apply a preset     | Switch to **Workspace** scope, then click the preset button in the panel header                   |
 | Set an alias       | Right-click a pinned root item and choose **Set Alias…**                                          |
+| Toggle label style | Open the command palette and run **Pinboard: Toggle Label Style (Folder Name / Relative Path)**   |
 
 ---
 
@@ -114,4 +115,4 @@ Right-click any item for contextual actions:
 | Setting               | Default    | Description                                                                                                           |
 | --------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
 | `pinboard.scope`      | `"global"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace.            |
-| `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (directory name). `"relativePath"` - display path relative to workspace root. |
+| `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (folder name). `"relativePath"` - display path relative to workspace root. |
