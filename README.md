@@ -110,4 +110,4 @@ Right-click any item for contextual actions:
 | Setting               | Default    | Description                                                                                                           |
 | --------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
 | `pinboard.scope`      | `"global"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace.            |
-| `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name. `"relativePath"` - display path relative to workspace root.               |
+| `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (directory name). `"relativePath"` - display path relative to workspace root. |

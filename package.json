@@ -85,7 +85,7 @@
           "default": "name",
           "enumDescriptions": [
             "Display the file or folder name only.",
-            "Display the path relative to the workspace root. Falls back to name if outside all workspace folders."
+            "Display the path relative to the workspace root. Falls back to directory name if outside all workspace folders."
           ],
           "description": "How pinned root items are labeled when no alias is set."
         }
@@ -127,7 +127,7 @@
       { "command": "pinboard.setAlias",            "category": "Pinboard", "title": "Set Alias…" },
       { "command": "pinboard.editAlias",           "category": "Pinboard", "title": "Edit Alias…" },
       { "command": "pinboard.removeAlias",         "category": "Pinboard", "title": "Remove Alias" },
-      { "command": "pinboard.toggleLabelStyle",     "category": "Pinboard", "title": "Toggle Label Style (Name / Relative Path)" },
+      { "command": "pinboard.toggleLabelStyle",     "category": "Pinboard", "title": "Toggle Label Style (Directory Name / Relative Path)" },
       { "command": "pinboard.openWorkspaceConfig", "category": "Pinboard", "title": "Open Workspace Config" }
     ],
     "menus": {

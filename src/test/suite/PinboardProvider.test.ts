@@ -987,9 +987,15 @@ suite('PinboardProvider', () => {
 
   suite('getLabelForPath (via getChildren)', () => {
     let tmpDir: string;
+    const wsDirs: string[] = [];
 
     setup(() => { tmpDir = makeTempDir(); });
-    teardown(() => { removeTempDir(tmpDir); });
+    teardown(() => {
+      removeTempDir(tmpDir);
+      for (const d of wsDirs.splice(0)) {
+        if (fs.existsSync(d)) { fs.rmdirSync(d); }
+      }
+    });
 
     test('default "name" style returns basename', async () => {
       const dirA = path.join(tmpDir, 'mydir');
@@ -1006,6 +1012,7 @@ suite('PinboardProvider', () => {
       if (!wsFolderPath) { return; }
       const subDir = path.join(wsFolderPath, 'sub');
       if (!fs.existsSync(subDir)) { fs.mkdirSync(subDir); }
+      wsDirs.push(subDir);
       const ctx = createMockContext();
       await ctx.globalState.update(STATE_KEY, [{ path: subDir }]);
       const provider = new PinboardProvider(ctx);
@@ -1015,7 +1022,6 @@ suite('PinboardProvider', () => {
       } as any);
       const items = await provider.getChildren(undefined);
       assert.strictEqual((items[0] as PinnedItemRoot).label, 'sub');
-      if (!fs.existsSync(path.join(wsFolderPath, 'sub'))) { /* created by test, leave for cleanup */ }
     });
 
     test('"relativePath" style outside workspace falls back to basename', async () => {
@@ -1037,6 +1043,7 @@ suite('PinboardProvider', () => {
       if (!wsFolderPath) { return; }
       const subDir = path.join(wsFolderPath, 'sub2');
       if (!fs.existsSync(subDir)) { fs.mkdirSync(subDir); }
+      wsDirs.push(subDir);
       const ctx = createMockContext();
       await ctx.globalState.update(STATE_KEY, [{ path: subDir, alias: 'Overridden' }]);
       const provider = new PinboardProvider(ctx);
@@ -1069,6 +1076,7 @@ suite('PinboardProvider', () => {
       if (!wsFolderPath) { return; }
       const subDir = path.join(wsFolderPath, 'sub3');
       if (!fs.existsSync(subDir)) { fs.mkdirSync(subDir); }
+      wsDirs.push(subDir);
       const ctx = createMockContext();
       await ctx.globalState.update(STATE_KEY, [{ path: subDir, alias: 'Temp Alias' }]);
       const provider = new PinboardProvider(ctx);

@@ -152,7 +152,7 @@ export function activate(context: vscode.ExtensionContext): void {
       const next = current === 'name' ? 'relativePath' : 'name';
       await config.update('labelStyle', next, vscode.ConfigurationTarget.Global);
       vscode.window.setStatusBarMessage(
-        `Pinboard: Label style → ${next === 'name' ? 'Name' : 'Relative Path'}`,
+        `Pinboard: Label style → ${next === 'name' ? 'Directory Name' : 'Relative Path'}`,
         2500
       );
     }),
