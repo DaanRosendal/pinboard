@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.19
+
+- Add first-time setup note to README about panel position.
+
 ## 0.0.18
 
 - Document VS Code API limitations for drag-and-drop and context menu in the README.

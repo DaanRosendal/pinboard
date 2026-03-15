@@ -4,6 +4,8 @@
 
 A VS Code extension that adds a **Pinboard** panel inside the Explorer sidebar. Pin any file or folder on disk as a persistent shortcut - independent of your current workspace.
 
+> **First-time setup:** Once installed, the Pinboard panel appears at the bottom of the Explorer sidebar. Drag it to the top if you'd prefer it there. VS Code doesn't allow extensions to control their panel position on install.
+
 Install from:
 
 - Visual Studio Marketplace: https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard
