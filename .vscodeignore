@@ -1,8 +1,12 @@
 .vscode/**
 .vscode-test/**
+.vscode-test.mjs
+.claude/**
 src/**
 demo/**
+out/**
 AGENTS.md
+CLAUDE.md
 .gitignore
 eslint.config.js
 .yarnrc
