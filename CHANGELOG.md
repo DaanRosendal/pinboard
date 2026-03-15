@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.21
+
+- Rename label style option from "Name" to "Directory Name" in the command title, status bar message, and settings descriptions for clarity.
+
 ## 0.0.20
 
 - Add per-item aliases: right-click any pinned root item and choose **Set Alias…** to give it a custom display name. The alias replaces the default label in the panel; the underlying path is unchanged. Use **Edit Alias…** to change it or **Remove Alias** to revert.
