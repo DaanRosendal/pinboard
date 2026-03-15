@@ -289,7 +289,11 @@ export class PinboardProvider
     this.refresh();
   }
 
-  async pinFromExplorer(uri: vscode.Uri): Promise<void> {
+  async pinFromExplorer(uri?: vscode.Uri): Promise<void> {
+    if (!uri) {
+      await this.addItem();
+      return;
+    }
     if (!this.pinnedPaths.includes(uri.fsPath)) {
       this.pinnedPaths.push(uri.fsPath);
       await this.persist();
