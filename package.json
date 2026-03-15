@@ -2,8 +2,8 @@
   "name": "pinboard",
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
-  "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, and quick actions",
-  "version": "0.0.15",
+  "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, workspace presets, and quick actions",
+  "version": "0.0.16",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [

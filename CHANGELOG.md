@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.16
+
+- Update marketplace description to mention workspace presets.
+
 ## 0.0.15
 
 - Fix "Pin to Pinboard" command palette invocation: when triggered without a URI (i.e. not from Explorer right-click), it now opens the file picker instead of silently doing nothing.
