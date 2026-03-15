@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.15
+
+- Fix "Pin to Pinboard" command palette invocation: when triggered without a URI (i.e. not from Explorer right-click), it now opens the file picker instead of silently doing nothing.
+
 ## 0.0.14
 
 - Add workspace preset pinboards: commit a `.pinboard.json` file to your workspace root defining named presets of relative paths. A `$(list-selection)` button appears in the Pinboard title bar (workspace scope only) when presets are detected, letting users apply a preset via a QuickPick and confirmation dialog. Presets are read-only — the extension never writes to `.pinboard.json`.
