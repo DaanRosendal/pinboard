@@ -100,3 +100,25 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 ## Git workflow
 
 - Always use Conventional Commits for commit messages (for example: `feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`)
+
+## Release workflow
+
+After bumping `package.json` version and adding a `CHANGELOG.md` entry, run:
+
+```bash
+VER=0.0.20   # set to new version
+
+# 1. Create and push an annotated tag
+git tag -a "v$VER" -m "Release v$VER"
+git push origin "v$VER"
+
+# 2. Create GitHub release with notes extracted from CHANGELOG.md
+awk "/^## $VER/{found=1; next} /^## /{if(found) exit} found{print}" CHANGELOG.md \
+  | gh release create "v$VER" --title "v$VER" --verify-tag -F -
+
+# 3. Publish to VS Code Marketplace and Open VSX
+npx @vscode/vsce publish
+npx ovsx publish -p $OPEN_VSX_TOKEN
+```
+
+`--verify-tag` aborts if the tag is missing, preventing a release from landing on the wrong commit.
