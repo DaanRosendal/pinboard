@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.18
+
+- Document VS Code API limitations for drag-and-drop and context menu in the README.
+
 ## 0.0.16
 
 - Update marketplace description to mention workspace presets.

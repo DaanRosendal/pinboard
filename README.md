@@ -29,6 +29,8 @@ Toggle between **Global** (pins survive across all workspaces) and **Workspace**
 
 Drag pinned items to rearrange them. Order is persisted.
 
+> **Note:** VS Code does not expose its internal file drag-and-drop API to extensions, so dragging files between folders to move them is not supported. Drag is limited to reordering pinned root items.
+
 ### Workspace presets
 
 This is, for instance, useful in large monorepos. Commit a `.pinboard.json` file to the workspace root to define named pinboard presets, then teammates switch to **Workspace** scope and click the list selection button in the panel header to open the menu for choosing a preset - letting them replace their current workspace pins with the preset's paths in one step.
@@ -53,6 +55,8 @@ All paths are relative to the workspace root. Paths that don't exist on disk are
 ### Context menu
 
 Right-click any item for contextual actions:
+
+> **Note:** VS Code does not expose its internal Explorer context menu API to extensions, so this menu is built independently. It covers the most common file operations but is not identical to the native Explorer context menu.
 
 | Item type     | Actions                                                                                                                                                                       |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
