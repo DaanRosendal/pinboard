@@ -79,6 +79,11 @@
           ],
           "description": "Where pinned items are stored."
         },
+        "pinboard.autoReveal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-reveal the active file in the Pinboard tree when it falls under a pinned folder."
+        },
         "pinboard.labelStyle": {
           "type": "string",
           "enum": ["name", "relativePath"],

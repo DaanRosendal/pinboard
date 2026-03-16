@@ -30,6 +30,7 @@ export class PinnedItemRoot extends vscode.TreeItem {
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None
     );
+    this.id = itemPath;
     this.tooltip = itemPath;
     this.resourceUri = vscode.Uri.file(itemPath);
 
@@ -61,6 +62,7 @@ export class FileSystemItem extends vscode.TreeItem {
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None
     );
+    this.id = itemPath;
     this.resourceUri = vscode.Uri.file(itemPath);
     this.contextValue = isDirectory ? 'pinnedDirectory' : 'pinnedFile';
     if (!isDirectory) {
@@ -91,6 +93,7 @@ export class PinboardProvider
   private pins: Pin[];
   private _fsWatchers: vscode.FileSystemWatcher[] = [];
   private _refreshTimer: NodeJS.Timeout | undefined;
+  private _dirPins = new Set<string>();
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.pins = this.loadFromStorage();
@@ -136,10 +139,12 @@ export class PinboardProvider
       const openPaths = new Set(
         (vscode.workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
       );
+      this._dirPins.clear();
       return Promise.all(
         this.pins.map(async (pin, index) => {
           let dir = false;
           try { dir = (await fs.promises.stat(pin.path)).isDirectory(); } catch { /* treated as file */ }
+          if (dir) this._dirPins.add(pin.path);
           return new PinnedItemRoot(
             pin.path, dir, openPaths.has(pin.path),
             this.getPinnedItemPosition(index),
@@ -168,6 +173,53 @@ export class PinboardProvider
     } catch {
       return [];
     }
+  }
+
+  getParent(element: AnyItem): vscode.ProviderResult<AnyItem> {
+    if (element.kind === 'root') return undefined;
+    const parentPath = path.dirname(element.itemPath);
+    const pin = this.pins.find(p => p.path === parentPath);
+    if (pin) {
+      return new PinnedItemRoot(
+        pin.path, true, false,
+        this.getPinnedItemPosition(this.pins.indexOf(pin)),
+        this.getLabelForPath(pin),
+        !!pin.alias
+      );
+    }
+    return new FileSystemItem(parentPath, true);
+  }
+
+  revealActiveFile(treeView: vscode.TreeView<AnyItem>, fsPath: string): void {
+    if (!treeView.visible) return;
+
+    // Exact match for pinned root files (not directories)
+    const exactPin = this.pins.find(p => p.path === fsPath);
+    if (exactPin && !this._dirPins.has(fsPath)) {
+      const index = this.pins.indexOf(exactPin);
+      const item = new PinnedItemRoot(
+        exactPin.path, false, false,
+        this.getPinnedItemPosition(index),
+        this.getLabelForPath(exactPin),
+        !!exactPin.alias
+      );
+      treeView.reveal(item, { select: true, focus: false, expand: false });
+      return;
+    }
+
+    // Find best (longest) matching directory pin
+    let bestPin: Pin | undefined;
+    for (const pin of this.pins) {
+      if (!this._dirPins.has(pin.path)) continue;
+      if (!fsPath.startsWith(pin.path + path.sep)) continue;
+      if (!bestPin || pin.path.length > bestPin.path.length) {
+        bestPin = pin;
+      }
+    }
+    if (!bestPin) return;
+
+    const item = new FileSystemItem(fsPath, false);
+    treeView.reveal(item, { select: true, focus: false, expand: false });
   }
 
   // ── DnD ───────────────────────────────────────────────────────────────────

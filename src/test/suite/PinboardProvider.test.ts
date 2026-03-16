@@ -1336,4 +1336,237 @@ suite('PinboardProvider', () => {
       assert.deepStrictEqual(stored, []);
     });
   });
+
+  // ── tree item ids ─────────────────────────────────────────────────────────
+
+  suite('tree item ids', () => {
+    test('PinnedItemRoot has id equal to itemPath', () => {
+      const itemPath = '/tmp/test-path';
+      const item = new PinnedItemRoot(itemPath, true, false, 'single', 'test', false);
+      assert.strictEqual(item.id, itemPath);
+    });
+
+    test('FileSystemItem has id equal to itemPath', () => {
+      const itemPath = '/tmp/test-path/file.txt';
+      const item = new FileSystemItem(itemPath, false);
+      assert.strictEqual(item.id, itemPath);
+    });
+  });
+
+  // ── getParent ─────────────────────────────────────────────────────────────
+
+  suite('getParent', () => {
+    let tmpDir: string;
+
+    setup(() => { tmpDir = makeTempDir(); });
+    teardown(() => { removeTempDir(tmpDir); });
+
+    test('returns undefined for root items', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      const roots = await provider.getChildren(undefined);
+      const parent = provider.getParent(roots[0]);
+      assert.strictEqual(parent, undefined);
+    });
+
+    test('returns PinnedItemRoot for direct child of a pinned folder', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const child = new FileSystemItem(path.join(dirA, 'foo.txt'), false);
+      const parent = provider.getParent(child) as PinnedItemRoot;
+      assert.ok(parent);
+      assert.strictEqual(parent.kind, 'root');
+      assert.strictEqual(parent.itemPath, dirA);
+    });
+
+    test('returns FileSystemItem for deeply nested item', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      const sub = path.join(dirA, 'sub');
+      fs.mkdirSync(sub, { recursive: true });
+      fs.writeFileSync(path.join(sub, 'deep.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const deepItem = new FileSystemItem(path.join(sub, 'deep.txt'), false);
+      const parent = provider.getParent(deepItem) as FileSystemItem;
+      assert.ok(parent);
+      assert.strictEqual(parent.kind, 'fsitem');
+      assert.strictEqual(parent.itemPath, sub);
+      assert.strictEqual(parent.isDirectory, true);
+    });
+
+    test('returned parent has matching id', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      const roots = await provider.getChildren(undefined);
+      const child = new FileSystemItem(path.join(dirA, 'foo.txt'), false);
+      const parent = provider.getParent(child) as PinnedItemRoot;
+      assert.strictEqual(parent.id, roots[0].id);
+    });
+  });
+
+  // ── revealActiveFile ──────────────────────────────────────────────────────
+
+  suite('revealActiveFile', () => {
+    let tmpDir: string;
+
+    function createMockTreeView(visible = true) {
+      return {
+        visible,
+        reveal: sandbox.stub().resolves(),
+        onDidExpandElement: () => ({ dispose() {} }),
+        onDidCollapseElement: () => ({ dispose() {} }),
+        onDidChangeSelection: () => ({ dispose() {} }),
+        onDidChangeVisibility: () => ({ dispose() {} }),
+        onDidChangeCheckboxState: () => ({ dispose() {} }),
+      } as unknown as vscode.TreeView<PinnedItemRoot | FileSystemItem>;
+    }
+
+    setup(() => { tmpDir = makeTempDir(); });
+    teardown(() => { removeTempDir(tmpDir); });
+
+    test('reveals a file nested inside a pinned directory', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(dirA, 'foo.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).calledOnce);
+      const revealed = (tv.reveal as sinon.SinonStub).firstCall.args[0];
+      assert.strictEqual(revealed.id, path.join(dirA, 'foo.txt'));
+    });
+
+    test('reveals a deeply nested file (2+ levels deep)', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      const sub = path.join(dirA, 'sub');
+      fs.mkdirSync(sub, { recursive: true });
+      fs.writeFileSync(path.join(sub, 'deep.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(sub, 'deep.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).calledOnce);
+      const revealed = (tv.reveal as sinon.SinonStub).firstCall.args[0];
+      assert.strictEqual(revealed.id, path.join(sub, 'deep.txt'));
+    });
+
+    test('reveals a pinned root file', async () => {
+      const filePath = path.join(tmpDir, 'file.txt');
+      fs.writeFileSync(filePath, '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, filePath);
+      assert.ok((tv.reveal as sinon.SinonStub).calledOnce);
+      const revealed = (tv.reveal as sinon.SinonStub).firstCall.args[0];
+      assert.strictEqual(revealed.kind, 'root');
+      assert.strictEqual(revealed.id, filePath);
+    });
+
+    test('does NOT reveal a pinned directory as a root', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, dirA);
+      assert.ok((tv.reveal as sinon.SinonStub).notCalled);
+    });
+
+    test('no-op when file is not under any pin', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(tmpDir, 'b', 'foo.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).notCalled);
+    });
+
+    test('no-op when treeView is not visible', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView(false);
+      provider.revealActiveFile(tv, path.join(dirA, 'foo.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).notCalled);
+    });
+
+    test('picks the most specific pin when pins overlap', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      const sub = path.join(dirA, 'sub');
+      fs.mkdirSync(sub, { recursive: true });
+      fs.writeFileSync(path.join(sub, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }, { path: sub }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(sub, 'foo.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).calledOnce);
+      const revealed = (tv.reveal as sinon.SinonStub).firstCall.args[0];
+      assert.strictEqual(revealed.id, path.join(sub, 'foo.txt'));
+    });
+
+    test('no false positive on path prefix', async () => {
+      const pin = path.join(tmpDir, 'pin');
+      const pinboard = path.join(tmpDir, 'pinboard');
+      fs.mkdirSync(pin);
+      fs.mkdirSync(pinboard);
+      fs.writeFileSync(path.join(pinboard, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: pin }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(pinboard, 'foo.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).notCalled);
+    });
+
+    test('works with multiple pins, only matches correct one', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      const dirB = path.join(tmpDir, 'b');
+      fs.mkdirSync(dirA);
+      fs.mkdirSync(dirB);
+      fs.writeFileSync(path.join(dirB, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }, { path: dirB }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(dirB, 'foo.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).calledOnce);
+      const revealed = (tv.reveal as sinon.SinonStub).firstCall.args[0];
+      assert.strictEqual(revealed.id, path.join(dirB, 'foo.txt'));
+    });
+  });
 });

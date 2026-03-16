@@ -46,6 +46,15 @@ export function activate(context: vscode.ExtensionContext): void {
       provider.updatePresetsContext();
     }),
 
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+      if (!editor) return;
+      const autoReveal = vscode.workspace
+        .getConfiguration('pinboard')
+        .get<boolean>('autoReveal', true);
+      if (!autoReveal) return;
+      provider.revealActiveFile(treeView, editor.document.uri.fsPath);
+    }),
+
     vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration('pinboard.scope')) {
         provider.onScopeChanged();
