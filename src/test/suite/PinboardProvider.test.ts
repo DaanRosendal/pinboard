@@ -1568,5 +1568,68 @@ suite('PinboardProvider', () => {
       const revealed = (tv.reveal as sinon.SinonStub).firstCall.args[0];
       assert.strictEqual(revealed.id, path.join(dirB, 'foo.txt'));
     });
+
+    test('fires tree data change when switching to non-pinned file after a reveal', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(dirA, 'foo.txt'));
+
+      let changeCount = 0;
+      provider.onDidChangeTreeData(() => { changeCount++; });
+      provider.revealActiveFile(tv, path.join(tmpDir, 'other', 'bar.txt'));
+      assert.ok(changeCount >= 1);
+    });
+
+    test('does not fire tree data change when no match and no previous reveal', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+
+      let changeCount = 0;
+      provider.onDidChangeTreeData(() => { changeCount++; });
+      provider.revealActiveFile(tv, path.join(tmpDir, 'other', 'bar.txt'));
+      assert.strictEqual(changeCount, 0);
+    });
+
+    test('getTreeItem mangles id of stale item during selection clearing', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      await provider.getChildren(undefined);
+      const tv = createMockTreeView();
+
+      provider.revealActiveFile(tv, path.join(dirA, 'foo.txt'));
+      provider.revealActiveFile(tv, path.join(tmpDir, 'other', 'bar.txt'));
+
+      const staleItem = new FileSystemItem(path.join(dirA, 'foo.txt'), false);
+      const result = provider.getTreeItem(staleItem);
+      assert.notStrictEqual(result.id, path.join(dirA, 'foo.txt'));
+    });
+
+    test('dirPins populated from rebuildWatchers without needing getChildren', async () => {
+      const dirA = path.join(tmpDir, 'a');
+      fs.mkdirSync(dirA);
+      fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
+      const ctx = createMockContext();
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      const provider = new PinboardProvider(ctx);
+      // Do NOT call getChildren — _dirPins should already be populated by rebuildWatchers
+      const tv = createMockTreeView();
+      provider.revealActiveFile(tv, path.join(dirA, 'foo.txt'));
+      assert.ok((tv.reveal as sinon.SinonStub).calledOnce);
+    });
   });
 });

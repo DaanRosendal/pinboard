@@ -94,6 +94,9 @@ export class PinboardProvider
   private _fsWatchers: vscode.FileSystemWatcher[] = [];
   private _refreshTimer: NodeJS.Timeout | undefined;
   private _dirPins = new Set<string>();
+  private _lastRevealedPath: string | undefined;
+  private _staleId: string | undefined;
+  private _staleTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(private readonly context: vscode.ExtensionContext) {
     this.pins = this.loadFromStorage();
@@ -131,6 +134,9 @@ export class PinboardProvider
   // ── TreeDataProvider ───────────────────────────────────────────────────────
 
   getTreeItem(element: AnyItem): vscode.TreeItem {
+    if (this._staleId && element.itemPath === this._staleId) {
+      element.id = element.itemPath + '\0';
+    }
     return element;
   }
 
@@ -139,12 +145,10 @@ export class PinboardProvider
       const openPaths = new Set(
         (vscode.workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
       );
-      this._dirPins.clear();
       return Promise.all(
         this.pins.map(async (pin, index) => {
           let dir = false;
           try { dir = (await fs.promises.stat(pin.path)).isDirectory(); } catch { /* treated as file */ }
-          if (dir) this._dirPins.add(pin.path);
           return new PinnedItemRoot(
             pin.path, dir, openPaths.has(pin.path),
             this.getPinnedItemPosition(index),
@@ -203,6 +207,7 @@ export class PinboardProvider
         this.getLabelForPath(exactPin),
         !!exactPin.alias
       );
+      this._lastRevealedPath = fsPath;
       treeView.reveal(item, { select: true, focus: false, expand: false });
       return;
     }
@@ -216,10 +221,14 @@ export class PinboardProvider
         bestPin = pin;
       }
     }
-    if (!bestPin) return;
 
-    const item = new FileSystemItem(fsPath, false);
-    treeView.reveal(item, { select: true, focus: false, expand: false });
+    if (bestPin) {
+      this._lastRevealedPath = fsPath;
+      const item = new FileSystemItem(fsPath, false);
+      treeView.reveal(item, { select: true, focus: false, expand: false });
+    } else if (this._lastRevealedPath) {
+      this.clearStaleSelection();
+    }
   }
 
   // ── DnD ───────────────────────────────────────────────────────────────────
@@ -601,16 +610,34 @@ export class PinboardProvider
 
   dispose(): void {
     if (this._refreshTimer) clearTimeout(this._refreshTimer);
+    if (this._staleTimer) clearTimeout(this._staleTimer);
     for (const w of this._fsWatchers) w.dispose();
     this._fsWatchers = [];
+  }
+
+  private clearStaleSelection(): void {
+    this._staleId = this._lastRevealedPath;
+    this._lastRevealedPath = undefined;
+    this._onDidChangeTreeData.fire(undefined);
+    if (this._staleTimer) clearTimeout(this._staleTimer);
+    // 500ms: long enough for VS Code to process the first refresh and call
+    // getTreeItem (which sees the mangled id and drops selection), short enough
+    // that the temporary id mismatch window is imperceptible to the user.
+    this._staleTimer = setTimeout(() => {
+      this._staleId = undefined;
+      this._staleTimer = undefined;
+      this._onDidChangeTreeData.fire(undefined);
+    }, 500);
   }
 
   private rebuildWatchers(): void {
     for (const w of this._fsWatchers) w.dispose();
     this._fsWatchers = [];
+    this._dirPins.clear();
     for (const pin of this.pins) {
       let isDir = false;
       try { isDir = fs.statSync(pin.path).isDirectory(); } catch { continue; }
+      if (isDir) this._dirPins.add(pin.path);
       const pattern = isDir
         ? new vscode.RelativePattern(vscode.Uri.file(pin.path), '**/*')
         : new vscode.RelativePattern(vscode.Uri.file(path.dirname(pin.path)), path.basename(pin.path));
