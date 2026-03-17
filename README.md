@@ -74,6 +74,12 @@ This is, for instance, useful in large monorepos. Commit a `.pinboard.json` file
 
 All paths are relative to the workspace root. Paths that don't exist on disk are silently ignored. The extension never modifies `.pinboard.json`.
 
+### Auto-reveal active file
+
+When you switch between editor tabs, the Pinboard tree automatically highlights the active file — if it falls under a pinned folder or is a pinned file itself. This makes it easy to keep track of where you are relative to your pinned items. When the active file is not under any pin, the previous selection is cleared so the tree never shows a stale highlight.
+
+Controlled by the `pinboard.autoReveal` setting (enabled by default).
+
 ### Auto-refresh
 
 The panel updates automatically when files or folders are created or deleted inside a pinned directory — no manual refresh needed.
@@ -115,4 +121,5 @@ Right-click any item for contextual actions:
 | Setting               | Default    | Description                                                                                                           |
 | --------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
 | `pinboard.scope`      | `"global"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace.            |
+| `pinboard.autoReveal` | `true`     | Auto-reveal the active file in the Pinboard tree when it falls under a pinned folder.                                 |
 | `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (folder name). `"relativePath"` - display path relative to workspace root. |

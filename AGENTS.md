@@ -53,7 +53,8 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 
 - **State**: `globalState` (global scope) or `workspaceState` (workspace scope) via `ExtensionContext`. Key: `pinboard.paths`. Value type: `Pin[] = Array<{ path: string; alias?: string }>`. Never use the filesystem to persist state.
 - **UI**: `TreeView` only — no WebviewView. The view ID `"pinboard"` must match in `package.json` and `createTreeView()`.
-- **Tree item types**: `PinnedItemRoot` (pinned roots, `kind: 'root'`) and `FileSystemItem` (nested files/dirs, `kind: 'fsitem'`). Both extend `vscode.TreeItem`.
+- **Tree item types**: `PinnedItemRoot` (pinned roots, `kind: 'root'`) and `FileSystemItem` (nested files/dirs, `kind: 'fsitem'`). Both extend `vscode.TreeItem`. Each item sets `id` to `itemPath` so `TreeView.reveal()` can locate it.
+- **Auto-reveal**: The provider implements `getParent()` (required by `TreeView.reveal()`) and `revealActiveFile()`. On editor tab switch, the active file is highlighted in the tree if it falls under a pinned folder. A stale-selection clearing mechanism temporarily mangles the `id` of the previously revealed item to force VS Code to drop the highlight when the active file leaves all pins.
 - **contextValue strings** (must stay in sync with `package.json` `when` clauses):
   - Nested items: `pinnedDirectory` and `pinnedFile`
   - Root items encode type + active state + position + alias presence:
