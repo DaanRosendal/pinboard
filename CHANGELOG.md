@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.24
+
+- Auto-reveal the active file in the Pinboard tree when switching editor tabs. If the file falls under a pinned folder (or is a pinned file itself), it is highlighted automatically. When the active file leaves all pins, the stale selection is cleared. Controlled by the `pinboard.autoReveal` setting (enabled by default).
+
 ## 0.0.23
 
 - Rename "Directory Name" label style to "Folder Name" for consistency with the extension's own wording (command palette title, status bar message, settings description).
