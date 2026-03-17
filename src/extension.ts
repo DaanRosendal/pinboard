@@ -105,6 +105,12 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pinboard.pinToWorkspace', (uri: vscode.Uri) =>
       provider.pinToWorkspace(uri)
     ),
+    vscode.commands.registerCommand('pinboard.unpinFromGlobal', (uri: vscode.Uri) =>
+      provider.unpinFromGlobal(uri)
+    ),
+    vscode.commands.registerCommand('pinboard.unpinFromWorkspace', (uri: vscode.Uri) =>
+      provider.unpinFromWorkspace(uri)
+    ),
 
     vscode.commands.registerCommand('pinboard.switchToWorkspace', () => {
       vscode.workspace

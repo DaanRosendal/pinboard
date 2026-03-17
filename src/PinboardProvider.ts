@@ -101,6 +101,7 @@ export class PinboardProvider
   constructor(private readonly context: vscode.ExtensionContext) {
     this.pins = this.loadFromStorage();
     this.rebuildWatchers();
+    this.syncPinContextKeys();
   }
 
   // ── Scope helpers ──────────────────────────────────────────────────────────
@@ -281,12 +282,13 @@ export class PinboardProvider
         changed = true;
       }
     }
-    if (changed) { await this.persist(); this.refresh(); }
+    if (changed) { await this.persist(); this.syncPinContextKeys(); this.refresh(); }
   }
 
   async removeItem(item: PinnedItemRoot): Promise<void> {
     this.pins = this.pins.filter(p => p.path !== item.itemPath);
     await this.persist();
+    this.syncPinContextKeys();
     this.refresh();
   }
 
@@ -315,6 +317,7 @@ export class PinboardProvider
       p.path === item.itemPath ? { ...p, path: newItemPath } : p
     );
     await this.persist();
+    this.syncPinContextKeys();
     this.refresh();
   }
 
@@ -334,6 +337,7 @@ export class PinboardProvider
     }
     this.pins = this.pins.filter(p => p.path !== item.itemPath);
     await this.persist();
+    this.syncPinContextKeys();
     this.refresh();
   }
 
@@ -383,6 +387,14 @@ export class PinboardProvider
 
   async pinToWorkspace(uri?: vscode.Uri): Promise<void> {
     await this.pinToScope(uri, 'workspace');
+  }
+
+  async unpinFromGlobal(uri: vscode.Uri): Promise<void> {
+    await this.unpinFromScope(uri, 'global');
+  }
+
+  async unpinFromWorkspace(uri: vscode.Uri): Promise<void> {
+    await this.unpinFromScope(uri, 'workspace');
   }
 
   async setAlias(item: PinnedItemRoot): Promise<void> {
@@ -572,6 +584,7 @@ export class PinboardProvider
       )
       .filter(pin => pathExists(pin.path));
     await this.context.workspaceState.update(STATE_KEY, this.pins);
+    this.syncPinContextKeys();
     this.refresh();
   }
 
@@ -671,6 +684,28 @@ export class PinboardProvider
     await this.storage.update(STATE_KEY, this.pins);
   }
 
+  syncPinContextKeys(): void {
+    const globalPaths = this.context.globalState.get<Pin[]>(STATE_KEY, []).map(p => p.path);
+    const workspacePaths = this.context.workspaceState.get<Pin[]>(STATE_KEY, []).map(p => p.path);
+    void vscode.commands.executeCommand('setContext', 'pinboard.globalPinPaths', globalPaths);
+    void vscode.commands.executeCommand('setContext', 'pinboard.workspacePinPaths', workspacePaths);
+  }
+
+  private async unpinFromScope(uri: vscode.Uri, targetScope: 'global' | 'workspace'): Promise<void> {
+    const targetStorage = targetScope === 'workspace'
+      ? this.context.workspaceState
+      : this.context.globalState;
+    const existing = targetStorage.get<Pin[]>(STATE_KEY, []);
+    const filtered = existing.filter(p => p.path !== uri.fsPath);
+    if (filtered.length === existing.length) return;
+    await targetStorage.update(STATE_KEY, filtered);
+    this.syncPinContextKeys();
+    if (targetScope === this.getScope()) {
+      this.pins = this.loadFromStorage();
+      this.refresh();
+    }
+  }
+
   private async pinToScope(uri: vscode.Uri | undefined, targetScope: 'global' | 'workspace'): Promise<void> {
     let itemPath: string;
     if (uri) {
@@ -694,6 +729,7 @@ export class PinboardProvider
     if (existing.some(p => p.path === itemPath)) return;
 
     await targetStorage.update(STATE_KEY, [...existing, { path: itemPath }]);
+    this.syncPinContextKeys();
 
     if (targetScope === this.getScope()) {
       this.pins = this.loadFromStorage();

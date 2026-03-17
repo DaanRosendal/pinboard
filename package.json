@@ -3,7 +3,7 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
   "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, workspace presets, and quick actions",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [
@@ -59,7 +59,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:pinboard"
+    "onView:pinboard",
+    "onStartupFinished"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -116,6 +117,8 @@
       { "command": "pinboard.pinFromExplorer",     "category": "Pinboard", "title": "Pin to Pinboard" },
       { "command": "pinboard.pinToWorkspace",      "category": "Pinboard", "title": "Pin to Workspace Pinboard" },
       { "command": "pinboard.pinToGlobal",         "category": "Pinboard", "title": "Pin to Global Pinboard" },
+      { "command": "pinboard.unpinFromGlobal",     "category": "Pinboard", "title": "Unpin from Global Pinboard" },
+      { "command": "pinboard.unpinFromWorkspace",  "category": "Pinboard", "title": "Unpin from Workspace Pinboard" },
       { "command": "pinboard.switchToWorkspace",   "category": "Pinboard", "title": "Switch to Workspace Scope",    "icon": "$(globe)" },
       { "command": "pinboard.switchToGlobal",      "category": "Pinboard", "title": "Switch to Global Scope",       "icon": "$(root-folder)" },
       { "command": "pinboard.openToSide",          "category": "Pinboard", "title": "Open to the Side",             "icon": "$(split-horizontal)" },
@@ -171,6 +174,9 @@
         { "command": "pinboard.unpinFolder",     "when": "view == pinboard && viewItem =~ /^pinnedFolder/",                                         "group": "inline@2" },
         { "command": "pinboard.unpinFile",       "when": "view == pinboard && viewItem =~ /^pinnedFileRoot/",                                       "group": "inline@1" },
 
+        { "command": "pinboard.unpinFolder",     "when": "view == pinboard && viewItem =~ /^pinnedFolder/",   "group": "5_modify@0" },
+        { "command": "pinboard.unpinFile",       "when": "view == pinboard && viewItem =~ /^pinnedFileRoot/", "group": "5_modify@0" },
+
         { "command": "pinboard.newFile",   "when": "view == pinboard && (viewItem =~ /^pinnedFolder/ || viewItem == pinnedDirectory)", "group": "1_new@1" },
         { "command": "pinboard.newFolder", "when": "view == pinboard && (viewItem =~ /^pinnedFolder/ || viewItem == pinnedDirectory)", "group": "1_new@2" },
 
@@ -216,13 +222,19 @@
         { "command": "pinboard.newFile",             "when": "false" },
         { "command": "pinboard.newFolder",           "when": "false" },
         { "command": "pinboard.renamePinnedFolder",  "when": "false" },
-        { "command": "pinboard.deletePinnedFolder",  "when": "false" }
+        { "command": "pinboard.deletePinnedFolder",  "when": "false" },
+        { "command": "pinboard.unpinFromGlobal",     "when": "false" },
+        { "command": "pinboard.unpinFromWorkspace",  "when": "false" }
       ],
       "explorer/context": [
-        { "command": "pinboard.pinToWorkspace", "when": "explorerResourceIsFolder", "group": "navigation@100" },
-        { "command": "pinboard.pinToWorkspace", "when": "!explorerResourceIsFolder && resourceScheme == file", "group": "navigation@101" },
-        { "command": "pinboard.pinToGlobal",    "when": "explorerResourceIsFolder", "group": "navigation@102" },
-        { "command": "pinboard.pinToGlobal",    "when": "!explorerResourceIsFolder && resourceScheme == file", "group": "navigation@103" }
+        { "command": "pinboard.pinToWorkspace",     "when": "explorerResourceIsFolder && !(resourcePath in pinboard.workspacePinPaths)",                                "group": "navigation@100" },
+        { "command": "pinboard.pinToWorkspace",     "when": "!explorerResourceIsFolder && resourceScheme == file && !(resourcePath in pinboard.workspacePinPaths)",     "group": "navigation@101" },
+        { "command": "pinboard.unpinFromWorkspace", "when": "explorerResourceIsFolder && resourcePath in pinboard.workspacePinPaths",                                   "group": "navigation@100" },
+        { "command": "pinboard.unpinFromWorkspace", "when": "!explorerResourceIsFolder && resourceScheme == file && resourcePath in pinboard.workspacePinPaths",        "group": "navigation@101" },
+        { "command": "pinboard.pinToGlobal",        "when": "explorerResourceIsFolder && !(resourcePath in pinboard.globalPinPaths)",                                   "group": "navigation@102" },
+        { "command": "pinboard.pinToGlobal",        "when": "!explorerResourceIsFolder && resourceScheme == file && !(resourcePath in pinboard.globalPinPaths)",        "group": "navigation@103" },
+        { "command": "pinboard.unpinFromGlobal",    "when": "explorerResourceIsFolder && resourcePath in pinboard.globalPinPaths",                                      "group": "navigation@102" },
+        { "command": "pinboard.unpinFromGlobal",    "when": "!explorerResourceIsFolder && resourceScheme == file && resourcePath in pinboard.globalPinPaths",           "group": "navigation@103" }
       ]
     },
     "jsonValidation": [

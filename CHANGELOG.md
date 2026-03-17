@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.26
+
+- Dynamic pin/unpin context menus in the file explorer: right-clicking a file or folder now shows "Unpin from Workspace Pinboard" / "Unpin from Global Pinboard" instead of the pin command when that item is already pinned in the respective scope. Each scope toggles independently.
+- Unpin commands also appear in the Pinboard panel right-click context menu (in addition to the existing inline hover button).
+
 ## 0.0.25
 
 - Default scope changed from global to workspace
