@@ -99,6 +99,12 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pinboard.pinFromExplorer', (uri: vscode.Uri) =>
       provider.pinFromExplorer(uri)
     ),
+    vscode.commands.registerCommand('pinboard.pinToGlobal', (uri: vscode.Uri) =>
+      provider.pinToGlobal(uri)
+    ),
+    vscode.commands.registerCommand('pinboard.pinToWorkspace', (uri: vscode.Uri) =>
+      provider.pinToWorkspace(uri)
+    ),
 
     vscode.commands.registerCommand('pinboard.switchToWorkspace', () => {
       vscode.workspace

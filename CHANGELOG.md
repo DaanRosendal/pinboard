@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.25
+
+- Default scope changed from global to workspace
+- New commands: "Pin to Workspace Pinboard" and "Pin to Global Pinboard" — available in the file explorer context menu and command palette, letting you pin directly to either scope without switching the active scope first
+
 ## 0.0.24
 
 - Auto-reveal the active file in the Pinboard tree when switching editor tabs. If the file falls under a pinned folder (or is a pinned file itself), it is highlighted automatically. When the active file leaves all pins, the stale selection is cleared. Controlled by the `pinboard.autoReveal` setting (enabled by default).

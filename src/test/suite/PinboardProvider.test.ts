@@ -31,7 +31,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.ok(items[0].contextValue?.endsWith('Single'));
@@ -43,7 +43,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.mkdirSync(dirB);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }, { path: dirB }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }, { path: dirB }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.ok(items[0].contextValue?.endsWith('First'));
@@ -55,7 +55,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.mkdirSync(dirB);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }, { path: dirB }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }, { path: dirB }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.ok(items[1].contextValue?.endsWith('Last'));
@@ -64,7 +64,7 @@ suite('PinboardProvider', () => {
     test('middle of three → contextValue ends with Middle', async () => {
       const [a, b, c] = ['a', 'b', 'c'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: a }, { path: b }, { path: c }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: a }, { path: b }, { path: c }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.ok(items[1].contextValue?.endsWith('Middle'));
@@ -74,7 +74,7 @@ suite('PinboardProvider', () => {
       const wsFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
       if (!wsFolderPath) { return; }
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: wsFolderPath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: wsFolderPath }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.ok(items[0].contextValue?.includes('Active'));
@@ -93,7 +93,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.strictEqual(items.length, 1);
@@ -105,9 +105,9 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       const nonexistent = path.join(tmpDir, 'nonexistent');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }, { path: nonexistent }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }, { path: nonexistent }]);
       new PinboardProvider(ctx);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: dirA }]);
     });
 
@@ -132,7 +132,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(path.join(tmpDir, 'a-dir'));
       fs.writeFileSync(path.join(tmpDir, 'c-file.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: tmpDir }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: tmpDir }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const children = await provider.getChildren(roots[0] as PinnedItemRoot);
@@ -146,7 +146,7 @@ suite('PinboardProvider', () => {
       fs.writeFileSync(path.join(tmpDir, '.hidden'), '');
       fs.writeFileSync(path.join(tmpDir, 'visible.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: tmpDir }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: tmpDir }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const children = await provider.getChildren(roots[0] as PinnedItemRoot);
@@ -158,7 +158,7 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'file.txt');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const children = await provider.getChildren(roots[0] as PinnedItemRoot);
@@ -208,7 +208,7 @@ suite('PinboardProvider', () => {
     test('drop moves dragged item to position before target', async () => {
       const [a, b, c] = ['a', 'b', 'c'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: a }, { path: b }, { path: c }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: a }, { path: b }, { path: c }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const dt = new vscode.DataTransfer();
@@ -221,7 +221,7 @@ suite('PinboardProvider', () => {
     test('drop appends to end when target is undefined', async () => {
       const [a, b, c] = ['a', 'b', 'c'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: a }, { path: b }, { path: c }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: a }, { path: b }, { path: c }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const dt = new vscode.DataTransfer();
@@ -234,7 +234,7 @@ suite('PinboardProvider', () => {
     test('drop is no-op when DataTransfer has no matching MIME', async () => {
       const [a, b] = ['a', 'b'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: a }, { path: b }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: a }, { path: b }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const dt = new vscode.DataTransfer();
@@ -314,7 +314,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(pathA);
       fs.mkdirSync(pathB);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: pathA }, { path: pathB }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: pathA }, { path: pathB }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       await provider.removeItem(roots[0] as PinnedItemRoot);
@@ -327,11 +327,11 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       await provider.removeItem(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, []);
     });
   });
@@ -346,7 +346,7 @@ suite('PinboardProvider', () => {
 
     async function makeProvider(pins: Pin[]): Promise<PinboardProvider> {
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, pins);
+      await ctx.workspaceState.update(STATE_KEY, pins);
       return new PinboardProvider(ctx);
     }
 
@@ -410,7 +410,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const showOpenDialog = sandbox.stub(vscode.window, 'showOpenDialog');
       await provider.pinFromExplorer(vscode.Uri.file(dirA));
@@ -443,7 +443,7 @@ suite('PinboardProvider', () => {
       const oldPath = path.join(tmpDir, 'oldname.txt');
       fs.writeFileSync(oldPath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: oldPath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: oldPath }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.window, 'showInputBox').resolves('newname.txt');
       const roots = await provider.getChildren(undefined);
@@ -451,7 +451,7 @@ suite('PinboardProvider', () => {
       const newPath = path.join(tmpDir, 'newname.txt');
       assert.ok(fs.existsSync(newPath));
       assert.ok(!fs.existsSync(oldPath));
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: newPath }]);
     });
 
@@ -459,12 +459,12 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'file.txt');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.window, 'showInputBox').resolves(undefined);
       const roots = await provider.getChildren(undefined);
       await provider.renamePinnedItem(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: filePath }]);
     });
 
@@ -472,12 +472,12 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'file.txt');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.window, 'showInputBox').resolves('file.txt');
       const roots = await provider.getChildren(undefined);
       await provider.renamePinnedItem(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: filePath }]);
     });
 
@@ -485,7 +485,7 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'file.txt');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath }]);
       const provider = new PinboardProvider(ctx);
       // Delete the file after loading so vscode.workspace.fs.rename fails (source not found)
       fs.unlinkSync(filePath);
@@ -494,7 +494,7 @@ suite('PinboardProvider', () => {
       const item = new PinnedItemRoot(filePath, false, false, 'single', path.basename(filePath), false);
       await provider.renamePinnedItem(item);
       assert.ok(showError.calledOnce);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: filePath }]);
     });
 
@@ -502,13 +502,13 @@ suite('PinboardProvider', () => {
       const oldPath = path.join(tmpDir, 'oldname.txt');
       fs.writeFileSync(oldPath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: oldPath, alias: 'My File' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: oldPath, alias: 'My File' }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.window, 'showInputBox').resolves('newname.txt');
       const roots = await provider.getChildren(undefined);
       await provider.renamePinnedItem(roots[0] as PinnedItemRoot);
       const newPath = path.join(tmpDir, 'newname.txt');
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: newPath, alias: 'My File' }]);
     });
   });
@@ -525,13 +525,13 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'file.txt');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath }]);
       const provider = new PinboardProvider(ctx);
       (sandbox.stub(vscode.window, 'showWarningMessage') as sinon.SinonStub).resolves('Move to Trash');
       // Use real vscode.workspace.fs.delete (moves to trash); just assert storage is cleared
       const roots = await provider.getChildren(undefined);
       await provider.deletePinnedItem(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, []);
     });
 
@@ -539,12 +539,12 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'file.txt');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath }]);
       const provider = new PinboardProvider(ctx);
       (sandbox.stub(vscode.window, 'showWarningMessage') as sinon.SinonStub).resolves(undefined);
       const roots = await provider.getChildren(undefined);
       await provider.deletePinnedItem(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: filePath }]);
     });
   });
@@ -706,9 +706,13 @@ suite('PinboardProvider', () => {
       const ctx = createMockContext();
       await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
+      // Start from global scope (no items there) to verify the switch
+      const scopeStub = sandbox.stub(provider, 'getScope').returns('global');
+      provider.onScopeChanged();
       const before = await provider.getChildren(undefined);
       assert.strictEqual(before.length, 0);
-      sandbox.stub(provider, 'getScope').returns('workspace');
+      // Switch to workspace — items should appear
+      scopeStub.returns('workspace');
       provider.onScopeChanged();
       const after = await provider.getChildren(undefined);
       assert.strictEqual(after.length, 1);
@@ -730,15 +734,19 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.mkdirSync(dirB);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
       await ctx.workspaceState.update(STATE_KEY, [{ path: dirB, alias: 'My Dir' }]);
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
-      const globalItems = await provider.getChildren(undefined);
-      assert.strictEqual((globalItems[0] as PinnedItemRoot).label, 'a');
-      sandbox.stub(provider, 'getScope').returns('workspace');
+      // default scope is workspace — shows dirB with its alias
+      const scopeStub = sandbox.stub(provider, 'getScope').returns('workspace');
       provider.onScopeChanged();
       const wsItems = await provider.getChildren(undefined);
       assert.strictEqual((wsItems[0] as PinnedItemRoot).label, 'My Dir');
+      // switch to global — shows dirA with basename
+      scopeStub.returns('global');
+      provider.onScopeChanged();
+      const globalItems = await provider.getChildren(undefined);
+      assert.strictEqual((globalItems[0] as PinnedItemRoot).label, 'a');
     });
   });
 
@@ -850,7 +858,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves('My Alias');
@@ -863,7 +871,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves('');
@@ -876,12 +884,12 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'Keep Me' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'Keep Me' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves(undefined);
       await provider.setAlias(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: dirA, alias: 'Keep Me' }]);
     });
 
@@ -889,12 +897,12 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves('Stored Alias');
       await provider.setAlias(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: dirA, alias: 'Stored Alias' }]);
     });
 
@@ -902,12 +910,12 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'Remove Me' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'Remove Me' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves('');
       await provider.setAlias(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: dirA }]);
     });
 
@@ -915,7 +923,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'X' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'X' }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.ok((items[0] as PinnedItemRoot).contextValue?.endsWith('Aliased'));
@@ -925,7 +933,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.ok(!(items[0] as PinnedItemRoot).contextValue?.endsWith('Aliased'));
@@ -959,11 +967,11 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       await provider.removeAlias(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: dirA }]);
       const after = await provider.getChildren(undefined);
       assert.strictEqual((after[0] as PinnedItemRoot).label, 'a');
@@ -974,11 +982,11 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       await provider.removeAlias(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: dirA }]);
     });
   });
@@ -1001,7 +1009,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'mydir');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.strictEqual((items[0] as PinnedItemRoot).label, 'mydir');
@@ -1014,7 +1022,7 @@ suite('PinboardProvider', () => {
       if (!fs.existsSync(subDir)) { fs.mkdirSync(subDir); }
       wsDirs.push(subDir);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: subDir }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: subDir }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.workspace, 'getConfiguration').returns({
         get: (key: string, defaultVal?: unknown) => key === 'labelStyle' ? 'relativePath' : defaultVal,
@@ -1028,7 +1036,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'outside');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.workspace, 'getConfiguration').returns({
         get: (key: string, defaultVal?: unknown) => key === 'labelStyle' ? 'relativePath' : defaultVal,
@@ -1045,7 +1053,7 @@ suite('PinboardProvider', () => {
       if (!fs.existsSync(subDir)) { fs.mkdirSync(subDir); }
       wsDirs.push(subDir);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: subDir, alias: 'Overridden' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: subDir, alias: 'Overridden' }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.workspace, 'getConfiguration').returns({
         get: (key: string, defaultVal?: unknown) => key === 'labelStyle' ? 'relativePath' : defaultVal,
@@ -1059,7 +1067,7 @@ suite('PinboardProvider', () => {
       const wsFolderPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
       if (!wsFolderPath) { return; }
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: wsFolderPath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: wsFolderPath }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.workspace, 'getConfiguration').returns({
         get: (key: string, defaultVal?: unknown) => key === 'labelStyle' ? 'relativePath' : defaultVal,
@@ -1078,7 +1086,7 @@ suite('PinboardProvider', () => {
       if (!fs.existsSync(subDir)) { fs.mkdirSync(subDir); }
       wsDirs.push(subDir);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: subDir, alias: 'Temp Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: subDir, alias: 'Temp Alias' }]);
       const provider = new PinboardProvider(ctx);
       sandbox.stub(vscode.workspace, 'getConfiguration').returns({
         get: (key: string, defaultVal?: unknown) => key === 'labelStyle' ? 'relativePath' : defaultVal,
@@ -1103,12 +1111,12 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'Old Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'Old Alias' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves('   ');
       await provider.setAlias(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: dirA }]);
       const after = await provider.getChildren(undefined);
       assert.strictEqual((after[0] as PinnedItemRoot).label, 'a');
@@ -1118,7 +1126,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'Same' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'Same' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves('Same');
@@ -1132,11 +1140,11 @@ suite('PinboardProvider', () => {
     test('alias survives moveUp', async () => {
       const [a, b] = ['a', 'b'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: a }, { path: b, alias: 'B Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: a }, { path: b, alias: 'B Alias' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       await provider.moveItemUp(roots[1] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: b, alias: 'B Alias' }, { path: a }]);
       const after = await provider.getChildren(undefined);
       assert.strictEqual((after[0] as PinnedItemRoot).label, 'B Alias');
@@ -1145,11 +1153,11 @@ suite('PinboardProvider', () => {
     test('alias survives moveDown', async () => {
       const [a, b] = ['a', 'b'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: a, alias: 'A Alias' }, { path: b }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: a, alias: 'A Alias' }, { path: b }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       await provider.moveItemDown(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, [{ path: b }, { path: a, alias: 'A Alias' }]);
       const after = await provider.getChildren(undefined);
       assert.strictEqual((after[1] as PinnedItemRoot).label, 'A Alias');
@@ -1158,13 +1166,13 @@ suite('PinboardProvider', () => {
     test('alias survives handleDrop reorder', async () => {
       const [a, b, c] = ['a', 'b', 'c'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: a }, { path: b, alias: 'B Alias' }, { path: c }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: a }, { path: b, alias: 'B Alias' }, { path: c }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const dt = new vscode.DataTransfer();
       provider.handleDrag([roots[1] as PinnedItemRoot], dt); // drag B
       await provider.handleDrop(roots[2] as PinnedItemRoot, dt); // drop onto C → order: a, b, c → a, c... no: insert before C
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       // B is dropped before C → new order: A, B, C (B was between A and C; now B is inserted before C from remaining [A,C])
       // remaining after removing B: [A, C]; insert B before C at index 1 → [A, B, C]
       assert.deepStrictEqual(stored, [{ path: a }, { path: b, alias: 'B Alias' }, { path: c }]);
@@ -1174,7 +1182,7 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'readme.md');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath, alias: 'Docs' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath, alias: 'Docs' }]);
       const provider = new PinboardProvider(ctx);
       const items = await provider.getChildren(undefined);
       assert.strictEqual((items[0] as PinnedItemRoot).label, 'Docs');
@@ -1184,7 +1192,7 @@ suite('PinboardProvider', () => {
     test('multiple items with mixed aliases display correctly', async () => {
       const [a, b, c] = ['a', 'b', 'c'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [
+      await ctx.workspaceState.update(STATE_KEY, [
         { path: a, alias: 'First' },
         { path: b },
         { path: c, alias: 'Third' },
@@ -1204,12 +1212,12 @@ suite('PinboardProvider', () => {
       const newDir = path.join(tmpDir, 'new');
       fs.mkdirSync(oldDir);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: oldDir, alias: 'Kept Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: oldDir, alias: 'Kept Alias' }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       sandbox.stub(vscode.window, 'showInputBox').resolves('new');
       await provider.renamePinnedItem(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.ok(fs.existsSync(newDir));
       assert.deepStrictEqual(stored, [{ path: newDir, alias: 'Kept Alias' }]);
     });
@@ -1241,6 +1249,8 @@ suite('PinboardProvider', () => {
       const ctx = createMockContext();
       await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
+      sandbox.stub(provider, 'getScope').returns('global');
+      provider.onScopeChanged();
       const items = await provider.getChildren(undefined);
       assert.strictEqual(items.length, 0);
     });
@@ -1249,15 +1259,17 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'Global Label' }]);
       await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'Workspace Label' }]);
+      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'Global Label' }]);
       const provider = new PinboardProvider(ctx);
-      const globalItems = await provider.getChildren(undefined);
-      assert.strictEqual((globalItems[0] as PinnedItemRoot).label, 'Global Label');
-      sandbox.stub(provider, 'getScope').returns('workspace');
-      provider.onScopeChanged();
+      // default scope is workspace — shows workspace alias
       const wsItems = await provider.getChildren(undefined);
       assert.strictEqual((wsItems[0] as PinnedItemRoot).label, 'Workspace Label');
+      // switch to global — shows global alias
+      sandbox.stub(provider, 'getScope').returns('global');
+      provider.onScopeChanged();
+      const globalItems = await provider.getChildren(undefined);
+      assert.strictEqual((globalItems[0] as PinnedItemRoot).label, 'Global Label');
     });
 
     test('removeAlias in workspace scope writes to workspaceState not globalState', async () => {
@@ -1327,12 +1339,12 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA, alias: 'My Alias' }]);
       const provider = new PinboardProvider(ctx);
       (sandbox.stub(vscode.window, 'showWarningMessage') as sinon.SinonStub).resolves('Move to Trash');
       const roots = await provider.getChildren(undefined);
       await provider.deletePinnedItem(roots[0] as PinnedItemRoot);
-      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
       assert.deepStrictEqual(stored, []);
     });
   });
@@ -1365,7 +1377,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const parent = provider.getParent(roots[0]);
@@ -1377,7 +1389,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const child = new FileSystemItem(path.join(dirA, 'foo.txt'), false);
@@ -1393,7 +1405,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(sub, { recursive: true });
       fs.writeFileSync(path.join(sub, 'deep.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const deepItem = new FileSystemItem(path.join(sub, 'deep.txt'), false);
@@ -1409,7 +1421,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const child = new FileSystemItem(path.join(dirA, 'foo.txt'), false);
@@ -1443,7 +1455,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1459,7 +1471,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(sub, { recursive: true });
       fs.writeFileSync(path.join(sub, 'deep.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1473,7 +1485,7 @@ suite('PinboardProvider', () => {
       const filePath = path.join(tmpDir, 'file.txt');
       fs.writeFileSync(filePath, '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: filePath }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: filePath }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1488,7 +1500,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1500,7 +1512,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1513,7 +1525,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView(false);
@@ -1527,7 +1539,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(sub, { recursive: true });
       fs.writeFileSync(path.join(sub, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }, { path: sub }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }, { path: sub }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1544,7 +1556,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(pinboard);
       fs.writeFileSync(path.join(pinboard, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: pin }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: pin }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1559,7 +1571,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirB);
       fs.writeFileSync(path.join(dirB, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }, { path: dirB }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }, { path: dirB }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1574,7 +1586,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1590,7 +1602,7 @@ suite('PinboardProvider', () => {
       const dirA = path.join(tmpDir, 'a');
       fs.mkdirSync(dirA);
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1606,7 +1618,7 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const tv = createMockTreeView();
@@ -1624,12 +1636,94 @@ suite('PinboardProvider', () => {
       fs.mkdirSync(dirA);
       fs.writeFileSync(path.join(dirA, 'foo.txt'), '');
       const ctx = createMockContext();
-      await ctx.globalState.update(STATE_KEY, [{ path: dirA }]);
+      await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       // Do NOT call getChildren — _dirPins should already be populated by rebuildWatchers
       const tv = createMockTreeView();
       provider.revealActiveFile(tv, path.join(dirA, 'foo.txt'));
       assert.ok((tv.reveal as sinon.SinonStub).calledOnce);
+    });
+  });
+
+  // ── pinToGlobal / pinToWorkspace ───────────────────────────────────────────
+
+  suite('pinToGlobal / pinToWorkspace', () => {
+    let tmpDir: string;
+
+    setup(() => { tmpDir = makeTempDir(); });
+    teardown(() => { removeTempDir(tmpDir); });
+
+    test('pins to globalState regardless of current scope (workspace active)', async () => {
+      const filePath = path.join(tmpDir, 'file.txt');
+      fs.writeFileSync(filePath, '');
+      const ctx = createMockContext();
+      const provider = new PinboardProvider(ctx);
+      sandbox.stub(provider, 'getScope').returns('workspace');
+      await provider.pinToGlobal(vscode.Uri.file(filePath));
+      assert.deepStrictEqual(ctx.globalState.get<Pin[]>(STATE_KEY, []), [{ path: filePath }]);
+      assert.deepStrictEqual(ctx.workspaceState.get<Pin[]>(STATE_KEY, []), []);
+    });
+
+    test('pins to workspaceState regardless of current scope (global active)', async () => {
+      const filePath = path.join(tmpDir, 'file.txt');
+      fs.writeFileSync(filePath, '');
+      const ctx = createMockContext();
+      const provider = new PinboardProvider(ctx);
+      sandbox.stub(provider, 'getScope').returns('global');
+      await provider.pinToWorkspace(vscode.Uri.file(filePath));
+      assert.deepStrictEqual(ctx.workspaceState.get<Pin[]>(STATE_KEY, []), [{ path: filePath }]);
+      assert.deepStrictEqual(ctx.globalState.get<Pin[]>(STATE_KEY, []), []);
+    });
+
+    test('refreshes tree when pinning to current scope', async () => {
+      const filePath = path.join(tmpDir, 'file.txt');
+      fs.writeFileSync(filePath, '');
+      const ctx = createMockContext();
+      const provider = new PinboardProvider(ctx);
+      sandbox.stub(provider, 'getScope').returns('workspace');
+      let fired = false;
+      provider.onDidChangeTreeData(() => { fired = true; });
+      await provider.pinToWorkspace(vscode.Uri.file(filePath));
+      assert.ok(fired);
+      const items = await provider.getChildren(undefined);
+      assert.strictEqual(items.length, 1);
+    });
+
+    test('does not refresh tree when pinning to other scope', async () => {
+      const filePath = path.join(tmpDir, 'file.txt');
+      fs.writeFileSync(filePath, '');
+      const ctx = createMockContext();
+      const provider = new PinboardProvider(ctx);
+      sandbox.stub(provider, 'getScope').returns('workspace');
+      let fired = false;
+      provider.onDidChangeTreeData(() => { fired = true; });
+      await provider.pinToGlobal(vscode.Uri.file(filePath));
+      assert.strictEqual(fired, false);
+      const items = await provider.getChildren(undefined);
+      assert.strictEqual(items.length, 0);
+    });
+
+    test('prevents duplicates', async () => {
+      const filePath = path.join(tmpDir, 'file.txt');
+      fs.writeFileSync(filePath, '');
+      const ctx = createMockContext();
+      const provider = new PinboardProvider(ctx);
+      const uri = vscode.Uri.file(filePath);
+      await provider.pinToGlobal(uri);
+      await provider.pinToGlobal(uri);
+      const stored = ctx.globalState.get<Pin[]>(STATE_KEY, []);
+      assert.strictEqual(stored.length, 1);
+    });
+
+    test('falls back to file picker when no URI', async () => {
+      const filePath = path.join(tmpDir, 'file.txt');
+      fs.writeFileSync(filePath, '');
+      const ctx = createMockContext();
+      const provider = new PinboardProvider(ctx);
+      const showOpenDialog = sandbox.stub(vscode.window, 'showOpenDialog').resolves([vscode.Uri.file(filePath)]);
+      await provider.pinToGlobal(undefined);
+      assert.ok(showOpenDialog.calledOnce);
+      assert.deepStrictEqual(ctx.globalState.get<Pin[]>(STATE_KEY, []), [{ path: filePath }]);
     });
   });
 });

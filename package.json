@@ -3,7 +3,7 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
   "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, workspace presets, and quick actions",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [
@@ -72,7 +72,7 @@
             "global",
             "workspace"
           ],
-          "default": "global",
+          "default": "workspace",
           "enumDescriptions": [
             "Pinned items persist across all workspaces.",
             "Pinned items are scoped to the current workspace."
@@ -114,6 +114,8 @@
       { "command": "pinboard.moveDown",            "category": "Pinboard", "title": "Move Down",                    "icon": "$(arrow-down)" },
       { "command": "pinboard.alreadyOpen",         "category": "Pinboard", "title": "Already Open in This Window",  "icon": "$(window-active)" },
       { "command": "pinboard.pinFromExplorer",     "category": "Pinboard", "title": "Pin to Pinboard" },
+      { "command": "pinboard.pinToWorkspace",      "category": "Pinboard", "title": "Pin to Workspace Pinboard" },
+      { "command": "pinboard.pinToGlobal",         "category": "Pinboard", "title": "Pin to Global Pinboard" },
       { "command": "pinboard.switchToWorkspace",   "category": "Pinboard", "title": "Switch to Workspace Scope",    "icon": "$(globe)" },
       { "command": "pinboard.switchToGlobal",      "category": "Pinboard", "title": "Switch to Global Scope",       "icon": "$(root-folder)" },
       { "command": "pinboard.openToSide",          "category": "Pinboard", "title": "Open to the Side",             "icon": "$(split-horizontal)" },
@@ -217,16 +219,10 @@
         { "command": "pinboard.deletePinnedFolder",  "when": "false" }
       ],
       "explorer/context": [
-        {
-          "command": "pinboard.pinFromExplorer",
-          "when": "explorerResourceIsFolder",
-          "group": "navigation@100"
-        },
-        {
-          "command": "pinboard.pinFromExplorer",
-          "when": "!explorerResourceIsFolder && resourceScheme == file",
-          "group": "navigation@100"
-        }
+        { "command": "pinboard.pinToWorkspace", "when": "explorerResourceIsFolder", "group": "navigation@100" },
+        { "command": "pinboard.pinToWorkspace", "when": "!explorerResourceIsFolder && resourceScheme == file", "group": "navigation@101" },
+        { "command": "pinboard.pinToGlobal",    "when": "explorerResourceIsFolder", "group": "navigation@102" },
+        { "command": "pinboard.pinToGlobal",    "when": "!explorerResourceIsFolder && resourceScheme == file", "group": "navigation@103" }
       ]
     },
     "jsonValidation": [

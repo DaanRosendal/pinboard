@@ -108,7 +108,7 @@ export class PinboardProvider
   getScope(): 'global' | 'workspace' {
     return vscode.workspace
       .getConfiguration('pinboard')
-      .get<'global' | 'workspace'>('scope', 'global');
+      .get<'global' | 'workspace'>('scope', 'workspace');
   }
 
   private get storage(): vscode.Memento {
@@ -375,6 +375,14 @@ export class PinboardProvider
       await this.persist();
       this.refresh();
     }
+  }
+
+  async pinToGlobal(uri?: vscode.Uri): Promise<void> {
+    await this.pinToScope(uri, 'global');
+  }
+
+  async pinToWorkspace(uri?: vscode.Uri): Promise<void> {
+    await this.pinToScope(uri, 'workspace');
   }
 
   async setAlias(item: PinnedItemRoot): Promise<void> {
@@ -661,6 +669,36 @@ export class PinboardProvider
 
   private async persist(): Promise<void> {
     await this.storage.update(STATE_KEY, this.pins);
+  }
+
+  private async pinToScope(uri: vscode.Uri | undefined, targetScope: 'global' | 'workspace'): Promise<void> {
+    let itemPath: string;
+    if (uri) {
+      itemPath = uri.fsPath;
+    } else {
+      const result = await vscode.window.showOpenDialog({
+        canSelectFiles: true,
+        canSelectFolders: true,
+        canSelectMany: false,
+        openLabel: 'Pin',
+      });
+      if (!result || result.length === 0) return;
+      itemPath = result[0].fsPath;
+    }
+
+    const targetStorage = targetScope === 'workspace'
+      ? this.context.workspaceState
+      : this.context.globalState;
+
+    const existing = targetStorage.get<Pin[]>(STATE_KEY, []);
+    if (existing.some(p => p.path === itemPath)) return;
+
+    await targetStorage.update(STATE_KEY, [...existing, { path: itemPath }]);
+
+    if (targetScope === this.getScope()) {
+      this.pins = this.loadFromStorage();
+      this.refresh();
+    }
   }
 
   private getPinnedItemPosition(index: number): 'single' | 'first' | 'middle' | 'last' {
