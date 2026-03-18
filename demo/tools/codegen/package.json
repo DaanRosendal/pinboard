@@ -1,0 +1,12 @@
+{
+  "name": "@acme/codegen",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "generate": "tsx src/generate-api-types.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0",
+    "openapi-typescript": "^7.0.0"
+  }
+}

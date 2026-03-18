@@ -1,21 +1,13 @@
-export function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
+export function formatDate(date: Date, locale = "en-US"): string {
+  return date.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" })
 }
 
-export function endOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(23, 59, 59, 999);
-  return d;
+export function isExpired(date: Date): boolean {
+  return date < new Date()
 }
 
 export function addDays(date: Date, days: number): Date {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
-
-export function isWithinRange(date: Date, from: Date, to: Date): boolean {
-  return date >= from && date <= to;
+  const result = new Date(date)
+  result.setDate(result.getDate() + days)
+  return result
 }

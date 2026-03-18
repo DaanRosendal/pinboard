@@ -1,27 +1,11 @@
-import { z } from 'zod';
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
 
-export const emailSchema = z.string().email();
+export function isNonEmpty(value: string): boolean {
+  return value.trim().length > 0
+}
 
-export const passwordSchema = z
-  .string()
-  .min(8, 'Password must be at least 8 characters')
-  .regex(/[A-Z]/, 'Must contain an uppercase letter')
-  .regex(/[0-9]/, 'Must contain a number');
-
-export const loginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1),
-});
-
-export const registerSchema = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-  name: z.string().min(1).max(100),
-});
-
-export const createProductSchema = z.object({
-  name: z.string().min(1).max(200),
-  sku: z.string().min(1).max(50).regex(/^[A-Z0-9-]+$/),
-  price: z.number().positive(),
-  stock: z.number().int().min(0),
-});
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}

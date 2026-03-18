@@ -1,0 +1,15 @@
+# Global owners
+* @acme/platform-eng
+
+# Frontend
+apps/web/** @acme/frontend
+apps/mobile/** @acme/mobile
+
+# Backend services
+services/** @acme/backend
+
+# Infrastructure
+infra/** @acme/devops
+
+# Packages
+packages/** @acme/platform-eng

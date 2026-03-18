@@ -1,24 +1,58 @@
 {
   "presets": [
     {
-      "name": "Frontend Team",
+      "name": "Full Stack",
       "paths": [
-        { "path": "packages/frontend/src", "alias": "Frontend Source" },
-        { "path": "packages/shared", "alias": "Shared Lib" },
-        "docs/frontend"
+        "apps/web/src",
+        "services/api-gateway/src",
+        "services/auth-service/src",
+        "packages/shared/src",
+        "packages/db/src",
+        "e2e/tests",
+        ".github/workflows"
       ]
     },
     {
-      "name": "Backend Team",
+      "name": "Frontend",
       "paths": [
-        { "path": "packages/backend", "alias": "Backend Service" },
-        { "path": "packages/api", "alias": "REST API" },
-        { "path": "packages/shared", "alias": "Shared Lib" }
+        "apps/web/src",
+        "apps/admin/src",
+        "packages/ui/src",
+        "packages/shared/src/types",
+        "e2e/tests"
       ]
     },
     {
-      "name": "Docs & Scripts",
-      "paths": ["docs", "scripts", ".github"]
+      "name": "Dev Setup",
+      "paths": [
+        "config",
+        ".github/workflows",
+        "tools/scripts",
+        "infra/docker",
+        "docs/onboarding"
+      ]
+    },
+    {
+      "name": "Backend On-Call",
+      "paths": [
+        "infra/k8s",
+        "docs/runbooks",
+        { "path": "services/api-gateway", "alias": "API Gateway" },
+        { "path": "services/auth-service", "alias": "Auth" },
+        { "path": "services/billing-service", "alias": "Billing" },
+        { "path": "services/notification-service", "alias": "Notifications" }
+      ]
+    },
+    {
+      "name": "Platform Eng",
+      "paths": [
+        { "path": "packages/db", "alias": "Database Layer" },
+        { "path": "packages/config", "alias": "Shared Config" },
+        { "path": "infra/terraform", "alias": "Terraform" },
+        { "path": "tools/codegen", "alias": "Codegen" },
+        { "path": "e2e", "alias": "E2E Tests" },
+        { "path": ".github/workflows", "alias": "CI/CD" }
+      ]
     }
   ]
 }

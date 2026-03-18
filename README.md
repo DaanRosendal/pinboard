@@ -1,6 +1,6 @@
 # Pinboard
 
-![Pinboard demo](assets/demo.png)
+<img src="assets/demo.png" width="600" />
 
 A VS Code extension that adds a **Pinboard** panel inside the Explorer sidebar. Pin any file or folder on disk as a persistent shortcut - independent of your current workspace.
 
@@ -49,24 +49,36 @@ This is, for instance, useful in large monorepos. Commit a `.pinboard.json` file
 {
   "presets": [
     {
-      "name": "Frontend Team",
+      "name": "Full Stack",
       "paths": [
-        { "path": "packages/frontend/src", "alias": "Frontend Source" },
-        { "path": "packages/shared", "alias": "Shared Lib" },
-        "docs/frontend"
+        "apps/web/src",
+        "services/api-gateway/src",
+        "services/auth-service/src",
+        "packages/shared/src",
+        "packages/db/src"
       ]
     },
     {
-      "name": "Backend Team",
+      "name": "Backend On-Call",
       "paths": [
-        { "path": "packages/backend", "alias": "Backend Service" },
-        { "path": "packages/api", "alias": "REST API" },
-        { "path": "packages/shared", "alias": "Shared Lib" }
+        "infra/k8s",
+        "docs/runbooks",
+        { "path": "services/api-gateway", "alias": "API Gateway" },
+        { "path": "services/auth-service", "alias": "Auth" },
+        { "path": "services/billing-service", "alias": "Billing" },
+        { "path": "services/notification-service", "alias": "Notifications" }
       ]
     },
     {
-      "name": "Docs & Scripts",
-      "paths": ["docs", "scripts", ".github"]
+      "name": "Platform Eng",
+      "paths": [
+        { "path": "packages/db", "alias": "Database Layer" },
+        { "path": "packages/config", "alias": "Shared Config" },
+        { "path": "infra/terraform", "alias": "Terraform" },
+        { "path": "tools/codegen", "alias": "Codegen" },
+        { "path": "e2e", "alias": "E2E Tests" },
+        { "path": ".github/workflows", "alias": "CI/CD" }
+      ]
     }
   ]
 }
@@ -90,12 +102,12 @@ Right-click any item for contextual actions:
 
 > **Note:** VS Code does not expose its internal Explorer context menu API to extensions, so this menu is built independently. It covers the most common file operations but is not identical to the native Explorer context menu.
 
-| Item type     | Actions                                                                                                                                                                                      |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Item type     | Actions                                                                                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Pinned folder | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Move Up, Move Down, Open in New Window, Copy Path, Copy Relative Path, Rename, Delete, Set Alias…, Unpin Folder |
-| Pinned file   | Open to the Side, Move Up, Move Down, Copy Path, Copy Relative Path, Reveal in Finder, Rename, Delete, Set Alias…, Unpin File                                                              |
-| Subfolder     | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Copy Path, Copy Relative Path, Rename, Delete                                                                      |
-| Nested file   | Open to the Side, Reveal in Finder, Copy Path, Copy Relative Path, Rename, Delete                                                                                                           |
+| Pinned file   | Open to the Side, Move Up, Move Down, Copy Path, Copy Relative Path, Reveal in Finder, Rename, Delete, Set Alias…, Unpin File                                                             |
+| Subfolder     | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Copy Path, Copy Relative Path, Rename, Delete                                                                   |
+| Nested file   | Open to the Side, Reveal in Finder, Copy Path, Copy Relative Path, Rename, Delete                                                                                                         |
 
 ---
 

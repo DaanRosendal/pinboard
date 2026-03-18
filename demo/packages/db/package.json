@@ -1,0 +1,13 @@
+{
+  "name": "@acme/db",
+  "version": "0.0.0",
+  "main": "./src/client.ts",
+  "scripts": {
+    "build": "tsc",
+    "migrate": "node dist/migrate.js"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.30.0",
+    "@neondatabase/serverless": "^0.9.0"
+  }
+}

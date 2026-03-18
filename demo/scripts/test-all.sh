@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-echo "Type-checking..."
-npm run typecheck
-
-echo "Linting..."
-npm run lint
-
-echo "Running tests..."
-npm test
-
-echo "All checks passed."
+echo "→ Running all tests"
+pnpm run test
+echo "→ Running E2E tests"
+pnpm --filter @acme/e2e test
+echo "✓ All tests complete"

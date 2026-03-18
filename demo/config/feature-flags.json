@@ -1,0 +1,20 @@
+{
+  "flags": {
+    "newDashboard": {
+      "enabled": true,
+      "rollout": 100
+    },
+    "mobileApp": {
+      "enabled": true,
+      "rollout": 50
+    },
+    "enterpriseSso": {
+      "enabled": false,
+      "rollout": 0
+    },
+    "aiAssistant": {
+      "enabled": false,
+      "rollout": 0
+    }
+  }
+}

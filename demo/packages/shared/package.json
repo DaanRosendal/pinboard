@@ -1,13 +1,9 @@
 {
   "name": "@acme/shared",
-  "version": "1.0.0",
-  "private": true,
+  "version": "0.0.0",
   "main": "./src/index.ts",
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "build": "tsc"
-  },
-  "dependencies": {
-    "zod": "^3.23.0"
+    "build": "tsc",
+    "lint": "eslint src"
   }
 }

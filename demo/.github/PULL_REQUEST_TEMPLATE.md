@@ -1,19 +1,18 @@
 ## Summary
 
-<!-- What does this PR change? 1-3 bullet points. -->
+<!-- What does this PR do? -->
 
--
+## Changes
 
-## Test plan
+- 
 
-<!-- How was this tested? -->
+## Testing
 
-- [ ] Manual test in dev environment
-- [ ] Unit tests added / updated
-- [ ] No regressions in `npm test`
+- [ ] Unit tests pass
+- [ ] E2E tests pass
+- [ ] Manual testing completed
 
 ## Checklist
 
-- [ ] Types pass (`npm run typecheck`)
-- [ ] Lint passes (`npm run lint`)
-- [ ] PR title follows Conventional Commits format
+- [ ] PR title follows Conventional Commits
+- [ ] CHANGELOG updated if user-facing
