@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.0.28
+
+- Improved README: cleaner layout, centered screenshot, better install links, removed em-dashes.
+
 ## 0.0.27
 
 - Refreshed README: updated screenshot, repositioned demo image, and improved introductory copy.

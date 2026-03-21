@@ -1,19 +1,20 @@
 # Pinboard
 
-A VS Code extension that adds a **Pinboard** panel inside the Explorer sidebar. Pin any file or folder as a persistent shortcut - independent of your current workspace.
+Pin any file or folder as a persistent shortcut inside the Explorer sidebar.
 
-> **First-time setup:** Once installed, the Pinboard panel appears at the bottom of the Explorer sidebar. Drag it to the top if you prefer it there. VS Code doesn't allow extensions to control their panel position on install.
+<p align="center">
+  <img src="assets/demo.png" width="250" alt="Pinboard panel screenshot" />
+</p>
 
-<img src="assets/demo.png" width="250" />
-
-Install from:
-
-- Visual Studio Marketplace: https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard
-- Open VSX Registry: https://open-vsx.org/extension/daanrosendal/pinboard
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=daanrosendal.pinboard) or [Open VSX Registry](https://open-vsx.org/extension/daanrosendal/pinboard) (Cursor, Antigravity, Windsurf).
 
 In case you enjoy using the extension, a coffee is always appreciated 😊
 
-<a href="https://buymeacoffee.com/daanrosendal"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" width="180"></a>
+<p align="center">
+  <a href="https://buymeacoffee.com/daanrosendal"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" width="180" /></a>
+</p>
+
+> **First-time setup:** Once installed, the Pinboard panel appears at the bottom of the Explorer sidebar. Drag it to the top if you prefer it there. VS Code doesn't allow extensions to control their panel position on install.
 
 ---
 
@@ -39,7 +40,7 @@ Right-click any pinned root item and choose **Set Alias…** to give it a custom
 
 ### Label style
 
-Configure `Settings > Pinboard > Label Style` to display pinned root items as the file/folder name (default) or as a path relative to the workspace root — useful in monorepos where multiple pinned folders share the same name. Aliases always take precedence over this setting.
+Configure `Settings > Pinboard > Label Style` to display pinned root items as the file/folder name (default) or as a path relative to the workspace root, useful in monorepos where multiple pinned folders share the same name. Aliases always take precedence over this setting.
 
 ### Workspace presets
 
@@ -88,13 +89,13 @@ All paths are relative to the workspace root. Paths that don't exist on disk are
 
 ### Auto-reveal active file
 
-When you switch between editor tabs, the Pinboard tree automatically highlights the active file — if it falls under a pinned folder or is a pinned file itself. This makes it easy to keep track of where you are relative to your pinned items. When the active file is not under any pin, the previous selection is cleared so the tree never shows a stale highlight.
+When you switch between editor tabs, the Pinboard tree automatically highlights the active file if it falls under a pinned folder or is a pinned file itself. This makes it easy to keep track of where you are relative to your pinned items. When the active file is not under any pin, the previous selection is cleared so the tree never shows a stale highlight.
 
 Controlled by the `pinboard.autoReveal` setting (enabled by default).
 
 ### Auto-refresh
 
-The panel updates automatically when files or folders are created or deleted inside a pinned directory — no manual refresh needed.
+The panel updates automatically when files or folders are created or deleted inside a pinned directory, with no manual refresh needed.
 
 ### Context menu
 

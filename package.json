@@ -3,7 +3,7 @@
   "publisher": "daanrosendal",
   "displayName": "Pinboard - Pin Files and Folders",
   "description": "Pin files and folders to a persistent Explorer sidebar panel with global/workspace scopes, drag reordering, workspace presets, and quick actions",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "license": "MIT",
   "icon": "assets/icon.png",
   "keywords": [
