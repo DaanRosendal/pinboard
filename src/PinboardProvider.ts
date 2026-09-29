@@ -97,7 +97,6 @@ export class PinboardProvider
   private _refreshTimer: NodeJS.Timeout | undefined;
   private _dirPins = new Set<string>();
   private _lastRevealedPath: string | undefined;
-  private _moveHintShown = false;
   private _staleId: string | undefined;
   private _staleTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -253,20 +252,27 @@ export class PinboardProvider
       );
       return;
     }
-    if (target?.kind === 'root' && target.isDirectory && !this._moveHintShown) {
-      this._moveHintShown = true;
-      vscode.window.showInformationMessage(
-        'Dropping a pinned item onto a pinned folder reorders it. To move it into the folder, right-click it and choose "Move to…".'
-      );
-    }
     const dragged: string[] = item.value;
+    const fromIndex = this.pins.findIndex(p => p.path === dragged[0]);
+    const toIndex = target?.kind === 'root' ? this.pins.findIndex(p => p.path === target.itemPath) : -1;
+    const placeAfter = fromIndex >= 0 && toIndex > fromIndex;
+    if (target?.kind === 'root' && target.isDirectory) {
+      const others = dragged.filter(d => d !== target.itemPath);
+      if (others.length === 0) return;
+      const action = await this.chooseDropAction(target, placeAfter);
+      if (!action) return;
+      if (action === 'move') {
+        await this.dropItems(target, others, this.dropSetting() === 'ask');
+        return;
+      }
+    }
     const remaining = this.pins.filter(p => !dragged.includes(p.path));
     const draggedPins = dragged.map(d => this.pins.find(p => p.path === d)!).filter(Boolean);
     const dropPath = target?.kind === 'root' ? target.itemPath : undefined;
     if (dropPath) {
       const insertAt = remaining.findIndex(p => p.path === dropPath);
       if (insertAt >= 0) {
-        remaining.splice(insertAt, 0, ...draggedPins);
+        remaining.splice(insertAt + (placeAfter ? 1 : 0), 0, ...draggedPins);
       } else {
         remaining.push(...draggedPins);
       }
@@ -721,6 +727,26 @@ export class PinboardProvider
     }
   }
 
+  private dropSetting(): 'ask' | 'reorder' | 'move' {
+    return vscode.workspace
+      .getConfiguration('pinboard')
+      .get<'ask' | 'reorder' | 'move'>('dropOnPinnedFolder', 'ask');
+  }
+
+  private async chooseDropAction(target: PinnedItemRoot, placeAfter: boolean): Promise<'reorder' | 'move' | undefined> {
+    const setting = this.dropSetting();
+    if (setting !== 'ask') return setting;
+    const name = typeof target.label === 'string' ? target.label : path.basename(target.itemPath);
+    const picked = await vscode.window.showQuickPick(
+      [
+        { label: `Reorder ${placeAfter ? 'after' : 'before'} "${name}"`, action: 'reorder' as const },
+        { label: `Move into "${name}"`, action: 'move' as const },
+      ],
+      { placeHolder: 'Reorder the pinned item, or move it into the folder?' }
+    );
+    return picked?.action;
+  }
+
   private async transferViaPicker(item: FileSystemItem | PinnedItemRoot, mode: 'move' | 'copy'): Promise<void> {
     const name = path.basename(item.itemPath);
     const uris = await vscode.window.showOpenDialog({
@@ -737,7 +763,7 @@ export class PinboardProvider
     }
   }
 
-  private async dropItems(target: AnyItem | undefined, sources: string[]): Promise<void> {
+  private async dropItems(target: AnyItem | undefined, sources: string[], skipConfirm = false): Promise<void> {
     if (!target) return;
     const destDir = target.isDirectory
       ? target.itemPath
@@ -750,7 +776,7 @@ export class PinboardProvider
     const confirm = vscode.workspace
       .getConfiguration('explorer')
       .get<boolean>('confirmDragAndDrop', true);
-    if (confirm) {
+    if (confirm && !skipConfirm) {
       const what = movable.length === 1 ? `"${path.basename(movable[0])}"` : `${movable.length} items`;
       const answer = await vscode.window.showWarningMessage(
         `Move ${what} into "${path.basename(destDir)}"?`,

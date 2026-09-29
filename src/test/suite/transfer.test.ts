@@ -26,7 +26,13 @@ suite('PinboardProvider: move, copy and drag', () => {
     let file: string;
 
     let trashed: string[];
-    setup(() => { trashed = []; });
+    setup(() => {
+      trashed = [];
+      sandbox.stub(vscode.window, 'showQuickPick').callsFake((async (items: { label: string }[]) =>
+        items.find(i => i.label.startsWith('Reorder'))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ) as any);
+    });
     function stubTrash(provider: PinboardProvider): PinboardProvider {
       sandbox.stub(provider, 'trashItem').callsFake(async (uri: vscode.Uri) => {
         trashed.push(uri.fsPath);
@@ -222,7 +228,7 @@ suite('PinboardProvider: move, copy and drag', () => {
       assert.ok(fs.existsSync(path.join(destDir, 'a.txt')));
     });
 
-    test('dragging a pinned root still only reorders pins', async () => {
+    test('dragging a pinned root down onto the next pin swaps them and moves nothing on disk', async () => {
       const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
       const roots = await provider.getChildren(undefined);
       const dt = new vscode.DataTransfer();
@@ -230,7 +236,7 @@ suite('PinboardProvider: move, copy and drag', () => {
       await provider.handleDrop(roots[1] as PinnedItemRoot, dt);
       assert.ok(fs.existsSync(srcDir));
       assert.ok(fs.existsSync(destDir));
-      assert.deepStrictEqual(storedPaths(ctx), [srcDir, destDir]);
+      assert.deepStrictEqual(storedPaths(ctx), [destDir, srcDir]);
     });
   });
 
@@ -242,7 +248,14 @@ suite('PinboardProvider: move, copy and drag', () => {
     let destDir: string;
     let file: string;
     let trashed: string[];
-    setup(() => { trashed = []; });
+    let quickPick: sinon.SinonStub;
+    setup(() => {
+      trashed = [];
+      quickPick = sandbox.stub(vscode.window, 'showQuickPick').callsFake((async (items: { label: string }[]) =>
+        items.find(i => i.label.startsWith('Reorder'))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ) as any);
+    });
     function stubTrash(provider: PinboardProvider): PinboardProvider {
       sandbox.stub(provider, 'trashItem').callsFake(async (uri: vscode.Uri) => {
         trashed.push(uri.fsPath);
@@ -896,59 +909,183 @@ suite('PinboardProvider: move, copy and drag', () => {
       await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
     });
 
-    test('dropping a pin onto a pinned folder reorders and shows the move hint once', async () => {
-      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+    function stubDropSetting(value: 'ask' | 'reorder' | 'move' | undefined): void {
+      sandbox.stub(vscode.workspace, 'getConfiguration').returns({
+        get: (key: string, def?: unknown) => key === 'dropOnPinnedFolder' && value ? value : def,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+    }
+
+    function answerQuickPick(choice: 'Reorder' | 'Move' | undefined): sinon.SinonStub {
+      quickPick.resetHistory();
+      quickPick.callsFake((async (items: { label: string }[]) =>
+        choice ? items.find(i => i.label.startsWith(choice)) : undefined
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ) as any);
+      return quickPick;
+    }
+
+    async function dragPinOnto(provider: PinboardProvider, from: number, onto: number): Promise<void> {
       const roots = await provider.getChildren(undefined);
-      const info = sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
       const dt = new vscode.DataTransfer();
-      provider.handleDrag([roots[1] as PinnedItemRoot], dt);
-      await provider.handleDrop(roots[0] as PinnedItemRoot, dt);
+      provider.handleDrag([roots[from] as PinnedItemRoot], dt);
+      await provider.handleDrop(roots[onto] as PinnedItemRoot, dt);
+    }
+
+    test('ask: choosing Reorder reorders the pins and moves nothing', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      const pick = answerQuickPick('Reorder');
+      await dragPinOnto(provider, 1, 0);
+      assert.ok(pick.calledOnce);
       assert.deepStrictEqual(stored(ctx).map(p => p.path), [destDir, srcDir]);
-      assert.ok(info.calledOnce);
-      assert.match(String(info.firstCall.args[0]), /Move to/);
-      const roots2 = await provider.getChildren(undefined);
-      const dt2 = new vscode.DataTransfer();
-      provider.handleDrag([roots2[1] as PinnedItemRoot], dt2);
-      await provider.handleDrop(roots2[0] as PinnedItemRoot, dt2);
-      assert.ok(info.calledOnce);
+      assert.ok(fs.existsSync(srcDir));
     });
 
-    test('no move hint when dropping a pin onto a pinned FILE or empty space', async () => {
+    test('ask: choosing Move moves the pinned folder into the target and updates the pin', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir, alias: 'S' }, { path: destDir }]);
+      answerQuickPick('Move');
+      const warn = sandbox.stub(vscode.window, 'showWarningMessage').resolves('Move' as never);
+      await dragPinOnto(provider, 0, 1);
+      assert.ok(warn.notCalled, 'the quick pick choice replaces the extra confirmation');
+      assert.ok(fs.existsSync(path.join(destDir, 'src', 'a.txt')));
+      assert.ok(!fs.existsSync(srcDir));
+      assert.deepStrictEqual(stored(ctx), [{ path: path.join(destDir, 'src'), alias: 'S' }, { path: destDir }]);
+    });
+
+    test('ask: dismissing the quick pick changes nothing', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      answerQuickPick(undefined);
+      await dragPinOnto(provider, 1, 0);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [srcDir, destDir]);
+      assert.ok(fs.existsSync(srcDir));
+    });
+
+    test('ask: the quick pick names the target and lists Reorder first', async () => {
+      const { provider } = await makeProvider([{ path: srcDir, alias: 'Source' }, { path: destDir }]);
+      const pick = answerQuickPick(undefined);
+      await dragPinOnto(provider, 1, 0);
+      const items = pick.firstCall.args[0] as unknown as { label: string }[];
+      assert.strictEqual(items.length, 2);
+      assert.match(items[0].label, /^Reorder before "Source"/);
+      assert.match(items[1].label, /^Move into "Source"/);
+    });
+
+    test('setting "reorder": reorders without asking', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      stubDropSetting('reorder');
+      const pick = answerQuickPick('Move');
+      await dragPinOnto(provider, 1, 0);
+      assert.ok(pick.notCalled);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [destDir, srcDir]);
+      assert.ok(fs.existsSync(srcDir));
+    });
+
+    test('setting "move": moves without the quick pick but keeps the drag confirmation', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      stubDropSetting('move');
+      const pick = answerQuickPick('Reorder');
+      const warn = sandbox.stub(vscode.window, 'showWarningMessage').resolves('Move' as never);
+      await dragPinOnto(provider, 0, 1);
+      assert.ok(pick.notCalled);
+      assert.ok(warn.calledOnce);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [path.join(destDir, 'src'), destDir]);
+    });
+
+    test('setting "move": declining the confirmation moves nothing', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      stubDropSetting('move');
+      sandbox.stub(vscode.window, 'showWarningMessage').resolves(undefined);
+      await dragPinOnto(provider, 0, 1);
+      assert.ok(fs.existsSync(srcDir));
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [srcDir, destDir]);
+    });
+
+    test('a pinned FILE can be moved into a pinned folder', async () => {
+      const { ctx, provider } = await makeProvider([{ path: file }, { path: destDir }]);
+      answerQuickPick('Move');
+      await dragPinOnto(provider, 0, 1);
+      assert.ok(fs.existsSync(path.join(destDir, 'a.txt')));
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [path.join(destDir, 'a.txt'), destDir]);
+    });
+
+    test('dropping a pin onto a pinned FILE reorders without asking', async () => {
       const rootFile = path.join(tmpDir, 'root.txt');
       fs.writeFileSync(rootFile, '');
-      const { provider } = await makeProvider([{ path: srcDir }, { path: rootFile }]);
-      const roots = await provider.getChildren(undefined);
-      const info = sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
-      const dt = new vscode.DataTransfer();
-      provider.handleDrag([roots[0] as PinnedItemRoot], dt);
-      await provider.handleDrop(roots[1] as PinnedItemRoot, dt);
-      await provider.handleDrop(undefined, dt);
-      assert.ok(info.notCalled);
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: rootFile }]);
+      const pick = answerQuickPick('Move');
+      await dragPinOnto(provider, 0, 1);
+      assert.ok(pick.notCalled);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [rootFile, srcDir]);
     });
 
-    test('no move hint when a nested item is dropped onto a pinned folder', async () => {
+    test('reorder placement: dragging DOWN lands after the target, UP lands before it', async () => {
+      const [a, b, c, d] = ['a', 'b', 'c', 'd'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
+      const { ctx, provider } = await makeProvider([{ path: a }, { path: b }, { path: c }, { path: d }]);
+      await dragPinOnto(provider, 0, 2);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [b, c, a, d]);
+      await dragPinOnto(provider, 3, 0);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [d, b, c, a]);
+      await dragPinOnto(provider, 1, 2);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [d, c, b, a]);
+      await dragPinOnto(provider, 2, 1);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [d, b, c, a]);
+    });
+
+    test('reorder placement: dragging onto the last pin puts it last', async () => {
+      const [a, b, c] = ['a', 'b', 'c'].map(n => { const p = path.join(tmpDir, n); fs.mkdirSync(p); return p; });
+      const { ctx, provider } = await makeProvider([{ path: a }, { path: b }, { path: c }]);
+      await dragPinOnto(provider, 0, 2);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [b, c, a]);
+    });
+
+    test('the Reorder choice says "after" for a downward drag and "before" for an upward one', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      const pick = answerQuickPick(undefined);
+      await dragPinOnto(provider, 0, 1);
+      assert.match((pick.firstCall.args[0] as unknown as { label: string }[])[0].label, /^Reorder after "dest"/);
+      pick.resetHistory();
+      await dragPinOnto(provider, 1, 0);
+      assert.match((pick.firstCall.args[0] as unknown as { label: string }[])[0].label, /^Reorder before "src"/);
+    });
+
+    test('setting "reorder": dragging a pin down onto the next pin visibly swaps them', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      stubDropSetting('reorder');
+      await dragPinOnto(provider, 0, 1);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [destDir, srcDir]);
+    });
+
+    test('dropping a pin onto itself does nothing and does not ask', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      const pick = answerQuickPick('Move');
+      const err = sandbox.stub(vscode.window, 'showErrorMessage').resolves(undefined);
+      await dragPinOnto(provider, 0, 0);
+      assert.ok(pick.notCalled);
+      assert.ok(err.notCalled);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [srcDir, destDir]);
+    });
+
+    test('dropping a pin onto empty space still moves it to the end without asking', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      const roots = await provider.getChildren(undefined);
+      const pick = answerQuickPick('Move');
+      const dt = new vscode.DataTransfer();
+      provider.handleDrag([roots[0] as PinnedItemRoot], dt);
+      await provider.handleDrop(undefined, dt);
+      assert.ok(pick.notCalled);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [destDir, srcDir]);
+    });
+
+    test('a nested item dropped onto a pinned folder never triggers the quick pick', async () => {
       const { provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
       const roots = await provider.getChildren(undefined);
-      const info = sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+      const pick = answerQuickPick('Reorder');
       sandbox.stub(vscode.window, 'showWarningMessage').resolves('Move' as never);
       const dt = dragOf(provider, [new FileSystemItem(file, false)]);
       await provider.handleDrop(roots[1] as PinnedItemRoot, dt);
-      assert.ok(info.notCalled);
+      assert.ok(pick.notCalled);
+      assert.ok(fs.existsSync(path.join(destDir, 'a.txt')));
     });
-
-    for (const [label, junk] of [['an empty string', ''], ['undefined', undefined], ['a plain string', 'x'], ['an object', {}]] as const) {
-      test(`a pin reorder still works when VS Code also passes ${label} under the items MIME`, async () => {
-        const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
-        const roots = await provider.getChildren(undefined);
-        const dt = new vscode.DataTransfer();
-        provider.handleDrag([roots[1] as PinnedItemRoot], dt);
-        dt.set(FS_MIME, new vscode.DataTransferItem(junk));
-        const err = sandbox.stub(vscode.window, 'showErrorMessage').resolves(undefined);
-        await provider.handleDrop(roots[0] as PinnedItemRoot, dt);
-        assert.ok(err.notCalled);
-        assert.deepStrictEqual(stored(ctx).map(p => p.path), [destDir, srcDir]);
-      });
-    }
 
     test('handleDrag: nested item sets only the items MIME', () => {
       const dt = new vscode.DataTransfer();

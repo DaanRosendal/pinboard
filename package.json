@@ -98,6 +98,21 @@
           ],
           "description": "How pinned root items are labeled when no alias is set."
         },
+        "pinboard.dropOnPinnedFolder": {
+          "type": "string",
+          "enum": [
+            "ask",
+            "reorder",
+            "move"
+          ],
+          "default": "ask",
+          "enumDescriptions": [
+            "Ask each time whether to reorder the pin or move it into the folder.",
+            "Dropping a pin onto a pinned folder reorders it (moving is still available via \"Move to…\").",
+            "Dropping a pin onto a pinned folder moves it into that folder."
+          ],
+          "description": "What happens when you drag a pinned item onto a pinned folder."
+        },
         "pinboard.sortPins": {
           "type": "string",
           "enum": [

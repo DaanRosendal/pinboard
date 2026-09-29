@@ -92,6 +92,7 @@ suite('PinboardProvider: pins', () => {
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const dt = new vscode.DataTransfer();
+      sandbox.stub(vscode.window, 'showQuickPick').callsFake((async (items: { label: string }[]) => items[0]) as never); // Reorder
       provider.handleDrag([roots[2] as PinnedItemRoot], dt); // drag C
       await provider.handleDrop(roots[1] as PinnedItemRoot, dt); // drop onto B
       const after = await provider.getChildren(undefined);

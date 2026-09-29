@@ -233,12 +233,11 @@ suite('PinboardProvider: aliases', () => {
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const dt = new vscode.DataTransfer();
+      sandbox.stub(vscode.window, 'showQuickPick').callsFake((async (items: { label: string }[]) => items[0]) as never); // Reorder
       provider.handleDrag([roots[1] as PinnedItemRoot], dt); // drag B
-      await provider.handleDrop(roots[2] as PinnedItemRoot, dt); // drop onto C → order: a, b, c → a, c... no: insert before C
+      await provider.handleDrop(roots[2] as PinnedItemRoot, dt); // drag B down onto C → B lands after C
       const stored = ctx.workspaceState.get<Pin[]>(STATE_KEY, []);
-      // B is dropped before C → new order: A, B, C (B was between A and C; now B is inserted before C from remaining [A,C])
-      // remaining after removing B: [A, C]; insert B before C at index 1 → [A, B, C]
-      assert.deepStrictEqual(stored, [{ path: a }, { path: b, alias: 'B Alias' }, { path: c }]);
+      assert.deepStrictEqual(stored, [{ path: a }, { path: c }, { path: b, alias: 'B Alias' }]);
     });
 
     test('pinned file can have alias', async () => {

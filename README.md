@@ -30,7 +30,7 @@ Toggle between **Global** (pins survive across all workspaces) and **Workspace**
 
 ### Drag to reorder
 
-Drag pinned items to rearrange them. Order is persisted. Dropping a pinned item onto another pinned folder reorders it; to move a pinned folder into another folder, right-click it and choose **Move to…**.
+Drag pinned items to rearrange them: dragging up drops the item before the pin you release on, dragging down drops it after. Order is persisted. When you drop a pinned item onto a pinned folder, Pinboard asks whether to **reorder** the pin or **move** it into that folder. Set `Settings > Pinboard > Drop On Pinned Folder` to `reorder` or `move` to skip the question. VS Code gives extensions no modifier keys during drags, which is why this is a prompt or a setting instead of Ctrl/Cmd-drag.
 
 ### Move and copy files
 
@@ -141,5 +141,6 @@ Right-click any item for contextual actions:
 | --------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
 | `pinboard.scope`      | `"workspace"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace.         |
 | `pinboard.autoReveal` | `true`     | Auto-reveal the active file in the Pinboard tree when it falls under a pinned folder.                                 |
+| `pinboard.dropOnPinnedFolder` | `"ask"` | `"ask"` - ask whether to reorder or move when a pin is dropped on a pinned folder. `"reorder"` - always reorder. `"move"` - always move into the folder. |
 | `pinboard.sortPins`   | `"manual"` | `"manual"` - pins keep your order. `"alias"` - sort alphabetically by alias, falling back to name.                    |
 | `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (folder name). `"relativePath"` - display path relative to workspace root. |
