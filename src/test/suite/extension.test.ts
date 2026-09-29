@@ -7,4 +7,9 @@ suite('Extension activation', () => {
     await ext?.activate();
     assert.ok(ext?.isActive);
   });
+
+  test('declares support for untrusted workspaces (Restricted Mode)', () => {
+    const ext = vscode.extensions.getExtension('daanrosendal.pinboard');
+    assert.strictEqual(ext?.packageJSON.capabilities?.untrustedWorkspaces?.supported, true);
+  });
 });

@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - **Feature:** Dropping a pin onto a pinned folder asks whether to reorder or move it. The `pinboard.dropOnPinnedFolder` setting lets you skip the question.
 - **Change:** Dragging a pin down now places it after the target instead of before it.
 - **Fix:** Dropping a pin onto a nested item now shows an error instead of sending the pin to the end.
+- **Fix:** Pinboard now also works in Restricted Mode, so the panel shows up in folders you have not trusted yet.
 - **Docs:** Corrected the `pinboard.scope` default in the README (`workspace`).
 
 ## 0.0.28
