@@ -1087,6 +1087,43 @@ suite('PinboardProvider: move, copy and drag', () => {
       assert.ok(fs.existsSync(path.join(destDir, 'a.txt')));
     });
 
+    test('the other scope\'s pin is updated even when it is spelled through a symlink', async () => {
+      const real = path.join(tmpDir, 'realdir');
+      fs.mkdirSync(path.join(real, 'src', 'sub'), { recursive: true });
+      fs.mkdirSync(path.join(real, 'dest'));
+      fs.writeFileSync(path.join(real, 'src', 'a.txt'), 'a');
+      const link = path.join(tmpDir, 'link');
+      fs.symlinkSync(real, link, 'dir');
+      const { ctx, provider } = await makeProvider([{ path: path.join(link, 'src') }]);
+      await ctx.globalState.update(STATE_KEY, [
+        { path: path.join(real, 'src'), alias: 'G' },
+        { path: path.join(real, 'src', 'sub') },
+        { path: path.join(real, 'dest') },
+      ]);
+      pickFolder(path.join(real, 'dest'));
+      await provider.moveTo(new PinnedItemRoot(path.join(link, 'src'), true, false, 'single', 'src', false));
+      const moved = path.join(real, 'dest', 'src');
+      assert.ok(fs.existsSync(path.join(moved, 'a.txt')));
+      assert.deepStrictEqual(stored(ctx), [{ path: moved }]);
+      assert.deepStrictEqual(ctx.globalState.get<Pin[]>(STATE_KEY, []), [
+        { path: moved, alias: 'G' },
+        { path: path.join(moved, 'sub') },
+        { path: path.join(real, 'dest') },
+      ]);
+    });
+
+    test('a pin spelled through a symlink follows a move started from the real path', async () => {
+      const real = path.join(tmpDir, 'realdir');
+      fs.mkdirSync(path.join(real, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(real, 'dest'));
+      const link = path.join(tmpDir, 'link');
+      fs.symlinkSync(real, link, 'dir');
+      const { ctx, provider } = await makeProvider([{ path: path.join(link, 'src') }]);
+      pickFolder(path.join(real, 'dest'));
+      await provider.moveTo(new FileSystemItem(path.join(real, 'src'), true));
+      assert.deepStrictEqual(stored(ctx), [{ path: path.join(real, 'dest', 'src') }]);
+    });
+
     test('handleDrag: nested item sets only the items MIME', () => {
       const dt = new vscode.DataTransfer();
       new PinboardProvider(createMockContext()).handleDrag([new FileSystemItem(file, false)], dt);

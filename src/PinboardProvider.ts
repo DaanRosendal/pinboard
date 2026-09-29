@@ -12,6 +12,10 @@ function pathExists(p: string): boolean {
   try { fs.statSync(p); return true; } catch { return false; }
 }
 
+function realPathOrSelf(p: string): string {
+  try { return fs.realpathSync(p); } catch { return p; }
+}
+
 export type Pin = { path: string; alias?: string };
 type PresetEntry = string | { path: string; alias?: string };
 
@@ -805,6 +809,10 @@ export class PinboardProvider
       vscode.window.showErrorMessage(`Cannot ${mode} "${name}" to that location.`);
       return false;
     }
+    // Resolved before the operation: afterwards the source no longer exists. Pins to the same
+    // folder can be spelled differently (symlinks such as /tmp vs /private/tmp).
+    const realOf = mode === 'move' ? this.snapshotRealPaths() : undefined;
+    const realSource = realOf ? realPathOrSelf(source) : source;
     const sourceUri = vscode.Uri.file(source);
     const targetUri = vscode.Uri.file(target);
     let exists = true;
@@ -836,12 +844,26 @@ export class PinboardProvider
       vscode.window.showErrorMessage(`Failed to ${mode}: ${err instanceof Error ? err.message : String(err)}.${note}`);
       return false;
     }
-    await this.updatePinsAfterTransfer(source, target, mode, exists);
+    await this.updatePinsAfterTransfer(source, realSource, realOf, target, mode, exists);
     return true;
+  }
+
+  private snapshotRealPaths(): (p: string) => string {
+    const cache = new Map<string, string>();
+    for (const pins of [
+      this.pins,
+      this.context.globalState.get<Pin[]>(STATE_KEY, []),
+      this.context.workspaceState.get<Pin[]>(STATE_KEY, []),
+    ]) {
+      for (const pin of pins) cache.set(pin.path, realPathOrSelf(pin.path));
+    }
+    return p => cache.get(p) ?? p;
   }
 
   private async updatePinsAfterTransfer(
     source: string,
+    realSource: string,
+    realOf: ((p: string) => string) | undefined,
     target: string,
     mode: 'move' | 'copy',
     replaced: boolean
@@ -852,9 +874,13 @@ export class PinboardProvider
       return pins
         .map(p => {
           if (mode !== 'move') return p;
-          if (p.path === source) return { ...p, path: target };
+          const real = realOf ? realOf(p.path) : p.path;
+          if (p.path === source || real === realSource) return { ...p, path: target };
           if (p.path.startsWith(source + path.sep)) {
             return { ...p, path: target + p.path.slice(source.length) };
+          }
+          if (real.startsWith(realSource + path.sep)) {
+            return { ...p, path: target + real.slice(realSource.length) };
           }
           return p;
         })
