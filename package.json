@@ -97,6 +97,19 @@
             "Display the path relative to the workspace root. Falls back to folder name if outside all workspace folders."
           ],
           "description": "How pinned root items are labeled when no alias is set."
+        },
+        "pinboard.sortPins": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "alias"
+          ],
+          "default": "manual",
+          "enumDescriptions": [
+            "Show pins in the order you arranged them.",
+            "Sort pins alphabetically by displayed label (alias, or name if none). Move Up/Down and drag reordering are disabled while active."
+          ],
+          "description": "How pinned root items are ordered."
         }
       }
     },
@@ -282,6 +295,11 @@
         "title": "Toggle Label Style (Folder Name / Relative Path)"
       },
       {
+        "command": "pinboard.toggleSort",
+        "category": "Pinboard",
+        "title": "Toggle Sort (Manual / Alphabetical)"
+      },
+      {
         "command": "pinboard.openWorkspaceConfig",
         "category": "Pinboard",
         "title": "Open Workspace Config"
@@ -383,12 +401,12 @@
         },
         {
           "command": "pinboard.moveUp",
-          "when": "view == pinboard && (viewItem =~ /^pinnedFolder/ || viewItem =~ /^pinnedFileRoot/)",
+          "when": "view == pinboard && !pinboard.isSorted && (viewItem =~ /^pinnedFolder/ || viewItem =~ /^pinnedFileRoot/)",
           "group": "3_open@3"
         },
         {
           "command": "pinboard.moveDown",
-          "when": "view == pinboard && (viewItem =~ /^pinnedFolder/ || viewItem =~ /^pinnedFileRoot/)",
+          "when": "view == pinboard && !pinboard.isSorted && (viewItem =~ /^pinnedFolder/ || viewItem =~ /^pinnedFileRoot/)",
           "group": "3_open@4"
         },
         {

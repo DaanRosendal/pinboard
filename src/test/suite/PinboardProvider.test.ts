@@ -1748,4 +1748,101 @@ suite('PinboardProvider', () => {
       assert.deepStrictEqual(ctx.globalState.get<Pin[]>(STATE_KEY, []), [{ path: filePath }]);
     });
   });
+
+  // ── sortPins ───────────────────────────────────────────────────────────────
+
+  suite('sortPins', () => {
+    let tmpDir: string;
+    let a: string, b: string, c: string;
+
+    setup(() => {
+      tmpDir = makeTempDir();
+      [a, b, c] = ['apple', 'Banana', 'cherry'].map(n => {
+        const p = path.join(tmpDir, n);
+        fs.mkdirSync(p);
+        return p;
+      });
+    });
+    teardown(() => { removeTempDir(tmpDir); });
+
+    function stubSort(mode: 'manual' | 'alias'): void {
+      sandbox.stub(vscode.workspace, 'getConfiguration').returns({
+        get: (key: string, defaultVal?: unknown) => key === 'sortPins' ? mode : defaultVal,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+    }
+
+    async function makeProvider(pins: Pin[]) {
+      const ctx = createMockContext();
+      await ctx.workspaceState.update(STATE_KEY, pins);
+      return { ctx, provider: new PinboardProvider(ctx) };
+    }
+
+    async function rootPaths(provider: PinboardProvider): Promise<string[]> {
+      return (await provider.getChildren(undefined)).map(i => (i as PinnedItemRoot).itemPath);
+    }
+
+    test('manual keeps stored order', async () => {
+      stubSort('manual');
+      const { provider } = await makeProvider([{ path: c }, { path: a }, { path: b }]);
+      assert.deepStrictEqual(await rootPaths(provider), [c, a, b]);
+    });
+
+    test('alias sorts case-insensitively, falling back to name', async () => {
+      stubSort('alias');
+      const { provider } = await makeProvider([
+        { path: c },
+        { path: a, alias: '[ui] App' },
+        { path: b, alias: '[api] Server' },
+      ]);
+      assert.deepStrictEqual(await rootPaths(provider), [b, a, c]);
+    });
+
+    test('sorting does not change stored order', async () => {
+      stubSort('alias');
+      const { ctx, provider } = await makeProvider([{ path: c }, { path: a }, { path: b }]);
+      await provider.getChildren(undefined);
+      assert.deepStrictEqual(
+        ctx.workspaceState.get<Pin[]>(STATE_KEY, []).map(p => p.path),
+        [c, a, b]
+      );
+    });
+
+    test('position contextValues follow sorted order', async () => {
+      stubSort('alias');
+      const { provider } = await makeProvider([{ path: c }, { path: a }, { path: b }]);
+      const items = await provider.getChildren(undefined);
+      assert.deepStrictEqual(
+        items.map(i => i.contextValue),
+        ['pinnedFolderFirst', 'pinnedFolderMiddle', 'pinnedFolderLast']
+      );
+    });
+
+    test('moveItemUp and moveItemDown are no-ops while sorted', async () => {
+      stubSort('alias');
+      const { ctx, provider } = await makeProvider([{ path: c }, { path: a }, { path: b }]);
+      const items = await provider.getChildren(undefined);
+      await provider.moveItemUp(items[1] as PinnedItemRoot);
+      await provider.moveItemDown(items[0] as PinnedItemRoot);
+      assert.deepStrictEqual(
+        ctx.workspaceState.get<Pin[]>(STATE_KEY, []).map(p => p.path),
+        [c, a, b]
+      );
+    });
+
+    test('drag and drop is a no-op while sorted', async () => {
+      stubSort('alias');
+      const { ctx, provider } = await makeProvider([{ path: c }, { path: a }, { path: b }]);
+      const items = await provider.getChildren(undefined);
+      const dt = new vscode.DataTransfer();
+      provider.handleDrag([items[0] as PinnedItemRoot], dt);
+      assert.strictEqual(dt.get('application/vscode.tree.pinboard'), undefined);
+      dt.set('application/vscode.tree.pinboard', new vscode.DataTransferItem([c]));
+      await provider.handleDrop(items[2] as PinnedItemRoot, dt);
+      assert.deepStrictEqual(
+        ctx.workspaceState.get<Pin[]>(STATE_KEY, []).map(p => p.path),
+        [c, a, b]
+      );
+    });
+  });
 });

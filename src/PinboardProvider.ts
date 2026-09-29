@@ -148,7 +148,7 @@ export class PinboardProvider
         (vscode.workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
       );
       return Promise.all(
-        this.pins.map(async (pin, index) => {
+        this.viewPins().map(async (pin, index) => {
           let dir = false;
           try { dir = (await fs.promises.stat(pin.path)).isDirectory(); } catch { /* treated as file */ }
           return new PinnedItemRoot(
@@ -188,7 +188,7 @@ export class PinboardProvider
     if (pin) {
       return new PinnedItemRoot(
         pin.path, true, false,
-        this.getPinnedItemPosition(this.pins.indexOf(pin)),
+        this.getPinnedItemPosition(this.viewPins().indexOf(pin)),
         this.getLabelForPath(pin),
         !!pin.alias
       );
@@ -202,7 +202,7 @@ export class PinboardProvider
     // Exact match for pinned root files (not directories)
     const exactPin = this.pins.find(p => p.path === fsPath);
     if (exactPin && !this._dirPins.has(fsPath)) {
-      const index = this.pins.indexOf(exactPin);
+      const index = this.viewPins().indexOf(exactPin);
       const item = new PinnedItemRoot(
         exactPin.path, false, false,
         this.getPinnedItemPosition(index),
@@ -236,6 +236,7 @@ export class PinboardProvider
   // ── DnD ───────────────────────────────────────────────────────────────────
 
   handleDrag(source: readonly AnyItem[], dataTransfer: vscode.DataTransfer): void {
+    if (this.isSorted()) return;
     const roots = source.filter((i): i is PinnedItemRoot => i.kind === 'root');
     if (roots.length === 0) return;
     dataTransfer.set(
@@ -245,6 +246,7 @@ export class PinboardProvider
   }
 
   async handleDrop(target: AnyItem | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
+    if (this.isSorted()) return;
     const item = dataTransfer.get(DND_MIME);
     if (!item) return;
     const dragged: string[] = item.value;
@@ -351,6 +353,7 @@ export class PinboardProvider
   }
 
   async moveItemUp(item: PinnedItemRoot): Promise<void> {
+    if (this.isSorted()) return;
     const index = this.pins.findIndex(p => p.path === item.itemPath);
     if (index <= 0) return;
     const reordered = [...this.pins];
@@ -361,6 +364,7 @@ export class PinboardProvider
   }
 
   async moveItemDown(item: PinnedItemRoot): Promise<void> {
+    if (this.isSorted()) return;
     const index = this.pins.findIndex(p => p.path === item.itemPath);
     if (index < 0 || index >= this.pins.length - 1) return;
     const reordered = [...this.pins];
@@ -736,6 +740,20 @@ export class PinboardProvider
       this.pins = this.loadFromStorage();
       this.refresh();
     }
+  }
+
+  isSorted(): boolean {
+    return vscode.workspace
+      .getConfiguration('pinboard')
+      .get<'manual' | 'alias'>('sortPins', 'manual') === 'alias';
+  }
+
+  private viewPins(): Pin[] {
+    if (!this.isSorted()) return this.pins;
+    const label = (pin: Pin) => this.getLabelForPath(pin);
+    return [...this.pins].sort((a, b) =>
+      label(a).localeCompare(label(b), undefined, { sensitivity: 'base' })
+    );
   }
 
   private getPinnedItemPosition(index: number): 'single' | 'first' | 'middle' | 'last' {

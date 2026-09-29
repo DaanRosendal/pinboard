@@ -63,6 +63,7 @@ Everything lives in two source files. Keep it that way unless there's a strong r
     - root files: `pinnedFileRoot{Single|First|Middle|Last}[Aliased]`
   - `when` clauses use regex patterns (`viewItem =~ /^pinnedFolder/`, `viewItem =~ /Aliased/`) — no need to list all variants explicitly
 - **Context key**: `pinboard.isGlobalScope` (boolean) — set via `setContext`, drives scope toggle button visibility in `view/title`.
+- **Context key**: `pinboard.isSorted` (boolean) — true when `pinboard.sortPins` is `alias`; hides Move Up/Down in `view/item/context`.
 - **Command category**: all commands declare `"category": "Pinboard"` in `package.json`. VS Code prepends this in the command palette (`Pinboard: Title`) but not in context menus. Item-specific commands are suppressed from the palette via `commandPalette` `"when": "false"` entries.
 
 ## package.json rules

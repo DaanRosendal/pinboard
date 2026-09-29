@@ -26,8 +26,13 @@ export function activate(context: vscode.ExtensionContext): void {
     );
   };
 
+  const syncSortContext = () => {
+    vscode.commands.executeCommand('setContext', 'pinboard.isSorted', provider.isSorted());
+  };
+
   syncView();
   syncScopeContext();
+  syncSortContext();
   provider.updatePresetsContext();
 
   const presetsWatcher = vscode.workspace.createFileSystemWatcher('**/.pinboard.json');
@@ -61,7 +66,13 @@ export function activate(context: vscode.ExtensionContext): void {
         syncScopeContext();
         provider.updatePresetsContext();
       }
-      if (e.affectsConfiguration('pinboard.labelStyle')) {
+      if (e.affectsConfiguration('pinboard.sortPins')) {
+        syncSortContext();
+      }
+      if (
+        e.affectsConfiguration('pinboard.labelStyle') ||
+        e.affectsConfiguration('pinboard.sortPins')
+      ) {
         provider.refresh();
       }
     }),
@@ -175,6 +186,16 @@ export function activate(context: vscode.ExtensionContext): void {
       await config.update('labelStyle', next, vscode.ConfigurationTarget.Global);
       vscode.window.setStatusBarMessage(
         `Pinboard: Label style → ${next === 'name' ? 'Folder Name' : 'Relative Path'}`,
+        2500
+      );
+    }),
+
+    vscode.commands.registerCommand('pinboard.toggleSort', async () => {
+      const config = vscode.workspace.getConfiguration('pinboard');
+      const next = config.get<string>('sortPins', 'manual') === 'manual' ? 'alias' : 'manual';
+      await config.update('sortPins', next, vscode.ConfigurationTarget.Global);
+      vscode.window.setStatusBarMessage(
+        `Pinboard: Sort → ${next === 'alias' ? 'Alphabetical' : 'Manual'}`,
         2500
       );
     }),
