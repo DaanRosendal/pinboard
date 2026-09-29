@@ -239,6 +239,16 @@
         "title": "Copy Relative Path"
       },
       {
+        "command": "pinboard.copyTo",
+        "category": "Pinboard",
+        "title": "Copy to…"
+      },
+      {
+        "command": "pinboard.moveTo",
+        "category": "Pinboard",
+        "title": "Move to…"
+      },
+      {
         "command": "pinboard.rename",
         "category": "Pinboard",
         "title": "Rename"
@@ -420,6 +430,16 @@
           "group": "4_copy@2"
         },
         {
+          "command": "pinboard.copyTo",
+          "when": "view == pinboard && (viewItem =~ /^pinnedFolder/ || viewItem =~ /^pinnedFileRoot/ || viewItem == pinnedFile || viewItem == pinnedDirectory)",
+          "group": "4_copy@3"
+        },
+        {
+          "command": "pinboard.moveTo",
+          "when": "view == pinboard && (viewItem =~ /^pinnedFolder/ || viewItem =~ /^pinnedFileRoot/ || viewItem == pinnedFile || viewItem == pinnedDirectory)",
+          "group": "4_copy@4"
+        },
+        {
           "command": "pinboard.rename",
           "when": "view == pinboard && (viewItem == pinnedFile || viewItem == pinnedDirectory)",
           "group": "5_modify@1"
@@ -518,6 +538,14 @@
         },
         {
           "command": "pinboard.copyRelativePath",
+          "when": "false"
+        },
+        {
+          "command": "pinboard.copyTo",
+          "when": "false"
+        },
+        {
+          "command": "pinboard.moveTo",
           "when": "false"
         },
         {

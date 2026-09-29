@@ -4,6 +4,7 @@ import * as fs from 'fs';
 
 const STATE_KEY = 'pinboard.paths';
 const DND_MIME = 'application/vscode.tree.pinboard';
+const FS_DND_MIME = 'application/vscode.tree.pinboard.items';
 const ALWAYS_HIDDEN = new Set(['.git', '.svn', '.hg', '.jj', '.DS_Store', 'Thumbs.db']);
 
 // Sync stat used only at startup/scope-change (loadFromStorage), not during tree rendering.
@@ -88,8 +89,8 @@ export class PinboardProvider
   >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-  readonly dropMimeTypes = [DND_MIME];
-  readonly dragMimeTypes = [DND_MIME];
+  readonly dropMimeTypes = [DND_MIME, FS_DND_MIME];
+  readonly dragMimeTypes = [DND_MIME, FS_DND_MIME];
 
   private pins: Pin[];
   private _fsWatchers: vscode.FileSystemWatcher[] = [];
@@ -236,6 +237,10 @@ export class PinboardProvider
   // ── DnD ───────────────────────────────────────────────────────────────────
 
   handleDrag(source: readonly AnyItem[], dataTransfer: vscode.DataTransfer): void {
+    const items = source.filter((i): i is FileSystemItem => i.kind === 'fsitem');
+    if (items.length > 0) {
+      dataTransfer.set(FS_DND_MIME, new vscode.DataTransferItem(items.map(i => i.itemPath)));
+    }
     if (this.isSorted()) return;
     const roots = source.filter((i): i is PinnedItemRoot => i.kind === 'root');
     if (roots.length === 0) return;
@@ -246,9 +251,20 @@ export class PinboardProvider
   }
 
   async handleDrop(target: AnyItem | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
+    const fsItems = dataTransfer.get(FS_DND_MIME);
+    if (fsItems) {
+      await this.dropItems(target, fsItems.value as string[]);
+      return;
+    }
     if (this.isSorted()) return;
     const item = dataTransfer.get(DND_MIME);
     if (!item) return;
+    if (target?.kind === 'fsitem') {
+      vscode.window.showErrorMessage(
+        'Pinned items can only be reordered. Drop onto another pinned item, or use "Move to…" to move it into a folder.'
+      );
+      return;
+    }
     const dragged: string[] = item.value;
     const remaining = this.pins.filter(p => !dragged.includes(p.path));
     const draggedPins = dragged.map(d => this.pins.find(p => p.path === d)!).filter(Boolean);
@@ -537,6 +553,14 @@ export class PinboardProvider
     });
   }
 
+  async moveTo(item: FileSystemItem | PinnedItemRoot): Promise<void> {
+    await this.transferViaPicker(item, 'move');
+  }
+
+  async copyTo(item: FileSystemItem | PinnedItemRoot): Promise<void> {
+    await this.transferViaPicker(item, 'copy');
+  }
+
   async copyRelativePath(item: FileSystemItem | PinnedItemRoot): Promise<void> {
     const uri = vscode.Uri.file(item.itemPath);
     const wsFolder = vscode.workspace.getWorkspaceFolder(uri);
@@ -740,6 +764,137 @@ export class PinboardProvider
       this.pins = this.loadFromStorage();
       this.refresh();
     }
+  }
+
+  private async transferViaPicker(item: FileSystemItem | PinnedItemRoot, mode: 'move' | 'copy'): Promise<void> {
+    const name = path.basename(item.itemPath);
+    const uris = await vscode.window.showOpenDialog({
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: false,
+      defaultUri: vscode.Uri.file(path.dirname(item.itemPath)),
+      openLabel: mode === 'move' ? 'Move Here' : 'Copy Here',
+      title: `${mode === 'move' ? 'Move' : 'Copy'} "${name}" to…`,
+    });
+    if (!uris || uris.length === 0) return;
+    if (await this.transferItem(item.itemPath, uris[0].fsPath, mode)) {
+      await this.finishTransfer();
+    }
+  }
+
+  private async dropItems(target: AnyItem | undefined, sources: string[]): Promise<void> {
+    if (!target) return;
+    const destDir = target.isDirectory
+      ? target.itemPath
+      : target.kind === 'fsitem' ? path.dirname(target.itemPath) : undefined;
+    if (!destDir) return;
+    const movable = sources
+      .filter(p => path.dirname(p) !== destDir)
+      .filter((p, _i, all) => !all.some(o => o !== p && p.startsWith(o + path.sep)));
+    if (movable.length === 0) return;
+    const confirm = vscode.workspace
+      .getConfiguration('explorer')
+      .get<boolean>('confirmDragAndDrop', true);
+    if (confirm) {
+      const what = movable.length === 1 ? `"${path.basename(movable[0])}"` : `${movable.length} items`;
+      const answer = await vscode.window.showWarningMessage(
+        `Move ${what} into "${path.basename(destDir)}"?`,
+        { modal: true },
+        'Move'
+      );
+      if (answer !== 'Move') return;
+    }
+    let changed = false;
+    for (const source of movable) {
+      if (await this.transferItem(source, destDir, 'move')) changed = true;
+    }
+    if (changed) await this.finishTransfer();
+  }
+
+  private async transferItem(source: string, destDir: string, mode: 'move' | 'copy'): Promise<boolean> {
+    const name = path.basename(source);
+    const target = path.join(destDir, name);
+    if (target === source) {
+      if (mode === 'copy') {
+        vscode.window.showInformationMessage(`"${name}" is already in that folder.`);
+      }
+      return false;
+    }
+    if (destDir === source || destDir.startsWith(source + path.sep) || source.startsWith(target + path.sep)) {
+      vscode.window.showErrorMessage(`Cannot ${mode} "${name}" to that location.`);
+      return false;
+    }
+    const sourceUri = vscode.Uri.file(source);
+    const targetUri = vscode.Uri.file(target);
+    let exists = true;
+    try { await vscode.workspace.fs.stat(targetUri); } catch { exists = false; }
+    if (exists) {
+      const answer = await vscode.window.showWarningMessage(
+        `"${name}" already exists in "${path.basename(destDir)}". Replace it?`,
+        { modal: true, detail: 'The existing item will be moved to the Trash.' },
+        'Replace'
+      );
+      if (answer !== 'Replace') return false;
+      try {
+        await this.trashItem(targetUri);
+      } catch {
+        vscode.window.showErrorMessage(`Could not move the existing "${name}" to the Trash. Nothing was changed.`);
+        return false;
+      }
+    }
+    try {
+      if (mode === 'copy') {
+        await vscode.workspace.fs.copy(sourceUri, targetUri, { overwrite: false });
+      } else {
+        await vscode.workspace.fs.rename(sourceUri, targetUri, { overwrite: false });
+      }
+    } catch (err) {
+      const note = exists ? ' The existing item is in the Trash.' : '';
+      vscode.window.showErrorMessage(`Failed to ${mode}: ${err instanceof Error ? err.message : String(err)}.${note}`);
+      return false;
+    }
+    await this.updatePinsAfterTransfer(source, target, mode, exists);
+    return true;
+  }
+
+  private async updatePinsAfterTransfer(
+    source: string,
+    target: string,
+    mode: 'move' | 'copy',
+    replaced: boolean
+  ): Promise<void> {
+    if (mode === 'copy' && !replaced) return;
+    const apply = (pins: Pin[]): Pin[] => {
+      const seen = new Set<string>();
+      return pins
+        .map(p => {
+          if (mode !== 'move') return p;
+          if (p.path === source) return { ...p, path: target };
+          if (p.path.startsWith(source + path.sep)) {
+            return { ...p, path: target + p.path.slice(source.length) };
+          }
+          return p;
+        })
+        .filter(p => !(replaced && p.path.startsWith(target + path.sep) && !pathExists(p.path)))
+        .filter(p => !seen.has(p.path) && !!seen.add(p.path));
+    };
+    this.pins = apply(this.pins);
+    const other = this.getScope() === 'workspace' ? this.context.globalState : this.context.workspaceState;
+    const otherPins = other.get<Pin[]>(STATE_KEY, []);
+    const updated = apply(otherPins);
+    if (JSON.stringify(updated) !== JSON.stringify(otherPins)) {
+      await other.update(STATE_KEY, updated);
+    }
+  }
+
+  async trashItem(uri: vscode.Uri): Promise<void> {
+    await vscode.workspace.fs.delete(uri, { recursive: true, useTrash: true });
+  }
+
+  private async finishTransfer(): Promise<void> {
+    await this.persist();
+    this.syncPinContextKeys();
+    this.refresh();
   }
 
   isSorted(): boolean {

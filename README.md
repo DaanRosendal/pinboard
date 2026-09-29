@@ -32,7 +32,9 @@ Toggle between **Global** (pins survive across all workspaces) and **Workspace**
 
 Drag pinned items to rearrange them. Order is persisted.
 
-> **Note:** VS Code does not expose its internal file drag-and-drop API to extensions, so dragging files between folders to move them is not supported. Drag is limited to reordering pinned root items.
+### Move and copy files
+
+Right-click any item and choose **Move to…** or **Copy to…** to pick a destination folder. You can also drag a file or folder from inside a pinned folder onto another folder in the panel to move it (VS Code asks for confirmation unless `explorer.confirmDragAndDrop` is off). If the destination already has an item with the same name you are asked first, and a replaced item is moved to the Trash. Moving a pinned item, or a folder that contains one, keeps the pin pointing at the new location. There is no undo for the move or copy itself, and dragging always moves; use **Copy to…** to copy.
 
 ### Aliases
 
@@ -109,10 +111,10 @@ Right-click any item for contextual actions:
 
 | Item type     | Actions                                                                                                                                                                                   |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pinned folder | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Move Up, Move Down, Open in New Window, Copy Path, Copy Relative Path, Rename, Delete, Set Alias…, Unpin Folder |
-| Pinned file   | Open to the Side, Move Up, Move Down, Copy Path, Copy Relative Path, Reveal in Finder, Rename, Delete, Set Alias…, Unpin File                                                             |
-| Subfolder     | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Copy Path, Copy Relative Path, Rename, Delete                                                                   |
-| Nested file   | Open to the Side, Reveal in Finder, Copy Path, Copy Relative Path, Rename, Delete                                                                                                         |
+| Pinned folder | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Move Up, Move Down, Open in New Window, Copy Path, Copy Relative Path, Copy to…, Move to…, Rename, Delete, Set Alias…, Unpin Folder |
+| Pinned file   | Open to the Side, Move Up, Move Down, Copy Path, Copy Relative Path, Copy to…, Move to…, Reveal in Finder, Rename, Delete, Set Alias…, Unpin File                                                             |
+| Subfolder     | New File, New Folder, Reveal in Finder, Open in Terminal, Find in Folder, Copy Path, Copy Relative Path, Copy to…, Move to…, Rename, Delete                                                                   |
+| Nested file   | Open to the Side, Reveal in Finder, Copy Path, Copy Relative Path, Copy to…, Move to…, Rename, Delete                                                                                                         |
 
 ---
 

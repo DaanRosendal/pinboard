@@ -164,6 +164,12 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pinboard.copyRelativePath', (item: FileSystemItem | PinnedItemRoot) =>
       provider.copyRelativePath(item)
     ),
+    vscode.commands.registerCommand('pinboard.moveTo', (item: FileSystemItem | PinnedItemRoot) =>
+      provider.moveTo(item)
+    ),
+    vscode.commands.registerCommand('pinboard.copyTo', (item: FileSystemItem | PinnedItemRoot) =>
+      provider.copyTo(item)
+    ),
 
     vscode.commands.registerCommand('pinboard.setAlias', (item: PinnedItemRoot) =>
       provider.setAlias(item)
