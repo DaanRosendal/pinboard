@@ -2687,6 +2687,44 @@ suite('PinboardProvider', () => {
       assert.match(opts.detail, /Trash/);
     });
 
+    test('an open editor follows a moved file', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(file));
+      await vscode.window.showTextDocument(doc);
+      pickFolder(destDir);
+      await provider.moveTo(new FileSystemItem(file, false));
+      const moved = path.join(destDir, 'a.txt');
+      assert.strictEqual(vscode.window.activeTextEditor?.document.uri.fsPath, moved);
+      assert.strictEqual(vscode.window.activeTextEditor?.document.getText(), 'hello');
+      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    });
+
+    test('an open editor follows when its parent folder is moved', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(file));
+      await vscode.window.showTextDocument(doc);
+      pickFolder(destDir);
+      await provider.moveTo(new FileSystemItem(srcDir, true));
+      assert.strictEqual(
+        vscode.window.activeTextEditor?.document.uri.fsPath,
+        path.join(destDir, 'src', 'a.txt')
+      );
+      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    });
+
+    test('a dirty editor keeps its unsaved edits when its file is moved', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(file));
+      const editor = await vscode.window.showTextDocument(doc);
+      await editor.edit(b => b.insert(new vscode.Position(0, 0), 'UNSAVED '));
+      pickFolder(destDir);
+      await provider.moveTo(new FileSystemItem(file, false));
+      assert.strictEqual(vscode.window.activeTextEditor?.document.uri.fsPath, path.join(destDir, 'a.txt'));
+      assert.strictEqual(vscode.window.activeTextEditor?.document.getText(), 'UNSAVED hello');
+      assert.ok(vscode.window.activeTextEditor?.document.isDirty);
+      await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
+    });
+
     test('handleDrag: nested item sets only the items MIME', () => {
       const dt = new vscode.DataTransfer();
       new PinboardProvider(createMockContext()).handleDrag([new FileSystemItem(file, false)], dt);

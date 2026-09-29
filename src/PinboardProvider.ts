@@ -846,7 +846,9 @@ export class PinboardProvider
       if (mode === 'copy') {
         await vscode.workspace.fs.copy(sourceUri, targetUri, { overwrite: false });
       } else {
-        await vscode.workspace.fs.rename(sourceUri, targetUri, { overwrite: false });
+        const edit = new vscode.WorkspaceEdit();
+        edit.renameFile(sourceUri, targetUri, { overwrite: false });
+        if (!(await vscode.workspace.applyEdit(edit))) throw new Error('the move was rejected');
       }
     } catch (err) {
       const note = exists ? ' The existing item is in the Trash.' : '';
