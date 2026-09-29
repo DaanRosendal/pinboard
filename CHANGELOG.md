@@ -4,13 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## 0.1.0
 
-- **Feature:** Dotfiles and dot-folders (`.env`, `.gitignore`, `.github`, ...) now show under pinned folders. Like the Explorer's defaults, `.git`, `.svn`, `.hg`, `.jj`, `.DS_Store` and `Thumbs.db` stay hidden.
-- **Feature:** New `pinboard.sortPins` setting (`manual` or `alias`) sorts pinned items alphabetically by their displayed label (alias, or name if none), plus a **Pinboard: Toggle Sort (Manual / Alphabetical)** command. With aliases like `[api] Server`, prefixes act as groups. Your manual order is never changed, so switching back restores it. Move Up/Down are hidden and drag reordering is disabled while sorting is on.
-- **Feature:** Move and copy files and folders from the panel: right-click any item and choose **Move to…** or **Copy to…**, or drag a file or folder onto another folder to move it (asks for confirmation unless `explorer.confirmDragAndDrop` is off). If the destination already has an item with the same name you are asked first, and the replaced item goes to the Trash. Moving a folder into itself is refused, pins follow moved items, and open editors follow moved files.
-- **Feature:** Dropping a pinned item onto a pinned folder now asks whether to reorder the pin or move it into the folder. The new `pinboard.dropOnPinnedFolder` setting (`ask`, `reorder` or `move`) lets you skip the question.
-- **Change:** Dragging a pinned item down onto another pin now places it after that pin. Previously it dropped before it, so a drag onto the pin directly below did nothing.
-- **Fix:** Dropping a pinned item onto a nested item now shows an error instead of silently sending the pin to the end of the list.
-- **Docs:** The README now shows the correct `pinboard.scope` default (`workspace`).
+- **Feature:** Dotfiles and dot-folders now show under pinned folders (`.git`, `.svn`, `.hg`, `.jj`, `.DS_Store` and `Thumbs.db` stay hidden).
+- **Feature:** New `pinboard.sortPins` setting and **Toggle Sort** command to sort pins alphabetically by alias or name. Your manual order is kept.
+- **Feature:** **Move to…** and **Copy to…** for files and folders, plus drag-to-move onto another folder. Replaced items go to the Trash, pins follow moved items, and open editors follow moved files.
+- **Feature:** Dropping a pin onto a pinned folder asks whether to reorder or move it. The `pinboard.dropOnPinnedFolder` setting lets you skip the question.
+- **Change:** Dragging a pin down now places it after the target instead of before it.
+- **Fix:** Dropping a pin onto a nested item now shows an error instead of sending the pin to the end.
+- **Docs:** Corrected the `pinboard.scope` default in the README (`workspace`).
 
 ## 0.0.28
 
