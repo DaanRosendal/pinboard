@@ -244,7 +244,7 @@ export class PinboardProvider
   async handleDrop(target: AnyItem | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
     const fsPaths: unknown = dataTransfer.get(FS_DND_MIME)?.value;
     if (Array.isArray(fsPaths) && fsPaths.length > 0) {
-      await this.dropItems(target, fsPaths as string[]);
+      await (target ? this.dropItems(target, fsPaths as string[]) : this.dropOnEmptySpace(fsPaths as string[]));
       return;
     }
     if (this.isSorted()) return;
@@ -773,6 +773,36 @@ export class PinboardProvider
       ? target.itemPath
       : target.kind === 'fsitem' ? path.dirname(target.itemPath) : undefined;
     if (!destDir) return;
+    await this.moveIntoFolder(destDir, sources, skipConfirm);
+  }
+
+  private async dropOnEmptySpace(sources: string[]): Promise<void> {
+    const root = this.getWorkspaceRoot();
+    const items: Array<{ label: string; action: 'root' | 'pick' }> = [];
+    if (root && sources.some(p => path.dirname(p) !== root)) {
+      items.push({ label: `Move to workspace root "${path.basename(root)}"`, action: 'root' });
+    }
+    items.push({ label: 'Move to another folder…', action: 'pick' });
+    const what = sources.length === 1 ? `"${path.basename(sources[0])}"` : `${sources.length} items`;
+    const picked = await vscode.window.showQuickPick(items, { placeHolder: `Move ${what} to…` });
+    if (!picked) return;
+    if (picked.action === 'root' && root) {
+      await this.moveIntoFolder(root, sources, true);
+      return;
+    }
+    const uris = await vscode.window.showOpenDialog({
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: false,
+      defaultUri: vscode.Uri.file(path.dirname(sources[0])),
+      openLabel: 'Move Here',
+      title: `Move ${what} to…`,
+    });
+    if (!uris || uris.length === 0) return;
+    await this.moveIntoFolder(uris[0].fsPath, sources, true);
+  }
+
+  private async moveIntoFolder(destDir: string, sources: string[], skipConfirm: boolean): Promise<void> {
     const movable = sources
       .filter(p => path.dirname(p) !== destDir)
       .filter((p, _i, all) => !all.some(o => o !== p && p.startsWith(o + path.sep)));

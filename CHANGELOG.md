@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 - **Feature:** Dotfiles and dot-folders now show under pinned folders (`.git`, `.svn`, `.hg`, `.jj`, `.DS_Store` and `Thumbs.db` stay hidden).
 - **Feature:** New `pinboard.sortPins` setting and **Toggle Sort** command to sort pins alphabetically by alias or name. Your manual order is kept.
-- **Feature:** **Move to…** and **Copy to…** for files and folders, plus drag-to-move onto another folder. Replaced items go to the Trash, pins follow moved items, and open editors follow moved files.
+- **Feature:** **Move to…** and **Copy to…** for files and folders, plus drag-to-move onto another folder, or onto empty space to choose a destination. Replaced items go to the Trash, pins follow moved items, and open editors follow moved files.
 - **Feature:** Dropping a pin onto a pinned folder asks whether to reorder or move it. The `pinboard.dropOnPinnedFolder` setting lets you skip the question.
 - **Change:** Dragging a pin down now places it after the target instead of before it.
 - **Fix:** Dropping a pin onto a nested item now shows an error instead of sending the pin to the end.

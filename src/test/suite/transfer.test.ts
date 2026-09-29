@@ -916,7 +916,7 @@ suite('PinboardProvider: move, copy and drag', () => {
       } as any);
     }
 
-    function answerQuickPick(choice: 'Reorder' | 'Move' | undefined): sinon.SinonStub {
+    function answerQuickPick(choice: string | undefined): sinon.SinonStub {
       quickPick.resetHistory();
       quickPick.callsFake((async (items: { label: string }[]) =>
         choice ? items.find(i => i.label.startsWith(choice)) : undefined
@@ -1122,6 +1122,104 @@ suite('PinboardProvider: move, copy and drag', () => {
       pickFolder(path.join(real, 'dest'));
       await provider.moveTo(new FileSystemItem(path.join(real, 'src'), true));
       assert.deepStrictEqual(stored(ctx), [{ path: path.join(real, 'dest', 'src') }]);
+    });
+
+    async function dropOnEmptySpace(provider: PinboardProvider, items: FileSystemItem[], root: string | null): Promise<void> {
+      sandbox.stub(provider as unknown as { getWorkspaceRoot: () => string | null }, 'getWorkspaceRoot').returns(root);
+      const dt = new vscode.DataTransfer();
+      provider.handleDrag(items, dt);
+      await provider.handleDrop(undefined, dt);
+    }
+
+    test('empty-space drop offers the workspace root and Move to another folder…', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      const pick = answerQuickPick(undefined);
+      await dropOnEmptySpace(provider, [new FileSystemItem(file, false)], destDir);
+      const labels = (pick.firstCall.args[0] as unknown as { label: string }[]).map(i => i.label);
+      assert.deepStrictEqual(labels, ['Move to workspace root "dest"', 'Move to another folder…']);
+    });
+
+    test('empty-space drop: choosing the workspace root moves the item there without another prompt', async () => {
+      const sub = path.join(srcDir, 'sub');
+      fs.mkdirSync(sub);
+      const nested = path.join(sub, 'deep.txt');
+      fs.writeFileSync(nested, 'deep');
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: nested }]);
+      answerQuickPick('Move to workspace root');
+      const warn = sandbox.stub(vscode.window, 'showWarningMessage').resolves('Move' as never);
+      await dropOnEmptySpace(provider, [new FileSystemItem(nested, false)], destDir);
+      assert.ok(warn.notCalled);
+      assert.strictEqual(fs.readFileSync(path.join(destDir, 'deep.txt'), 'utf8'), 'deep');
+      assert.ok(!fs.existsSync(nested));
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [srcDir, path.join(destDir, 'deep.txt')]);
+    });
+
+    test('empty-space drop: Move to another folder… moves into the picked folder', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      answerQuickPick('Move to another folder');
+      const open = pickFolder(destDir);
+      await dropOnEmptySpace(provider, [new FileSystemItem(file, false)], null);
+      assert.ok(open.calledOnce);
+      const opts = open.firstCall.args[0] as vscode.OpenDialogOptions;
+      assert.strictEqual(opts.canSelectFolders, true);
+      assert.strictEqual(opts.canSelectFiles, false);
+      assert.strictEqual(opts.defaultUri?.fsPath, srcDir);
+      assert.ok(fs.existsSync(path.join(destDir, 'a.txt')));
+      assert.ok(!fs.existsSync(file));
+    });
+
+    test('empty-space drop with no workspace folder only offers Move to another folder…', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      const pick = answerQuickPick(undefined);
+      await dropOnEmptySpace(provider, [new FileSystemItem(file, false)], null);
+      const labels = (pick.firstCall.args[0] as unknown as { label: string }[]).map(i => i.label);
+      assert.deepStrictEqual(labels, ['Move to another folder…']);
+    });
+
+    test('empty-space drop of items already in the workspace root only offers Move to another folder…', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      const pick = answerQuickPick(undefined);
+      await dropOnEmptySpace(provider, [new FileSystemItem(file, false)], srcDir);
+      const labels = (pick.firstCall.args[0] as unknown as { label: string }[]).map(i => i.label);
+      assert.deepStrictEqual(labels, ['Move to another folder…']);
+    });
+
+    test('empty-space drop: dismissing the pick list changes nothing', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }]);
+      answerQuickPick(undefined);
+      const open = pickFolder(destDir);
+      await dropOnEmptySpace(provider, [new FileSystemItem(file, false)], destDir);
+      assert.ok(open.notCalled);
+      assert.ok(fs.existsSync(file));
+      assert.deepStrictEqual(stored(ctx), [{ path: srcDir }]);
+    });
+
+    test('empty-space drop: cancelling the folder dialog changes nothing', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      answerQuickPick('Move to another folder');
+      sandbox.stub(vscode.window, 'showOpenDialog').resolves(undefined);
+      await dropOnEmptySpace(provider, [new FileSystemItem(file, false)], destDir);
+      assert.ok(fs.existsSync(file));
+    });
+
+    test('empty-space drop of several items moves them all', async () => {
+      const b = path.join(srcDir, 'b.txt');
+      fs.writeFileSync(b, 'bee');
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      const pick = answerQuickPick('Move to workspace root');
+      await dropOnEmptySpace(provider, [new FileSystemItem(file, false), new FileSystemItem(b, false)], destDir);
+      assert.match(String(pick.firstCall.args[1] && (pick.firstCall.args[1] as { placeHolder: string }).placeHolder), /2 items/);
+      assert.deepStrictEqual(fs.readdirSync(destDir).sort(), ['a.txt', 'b.txt']);
+    });
+
+    test('empty-space drop still refuses moving a folder into itself', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }]);
+      answerQuickPick('Move to another folder');
+      pickFolder(srcDir);
+      const err = sandbox.stub(vscode.window, 'showErrorMessage').resolves(undefined);
+      await dropOnEmptySpace(provider, [new FileSystemItem(srcDir, true)], null);
+      assert.ok(err.calledOnce);
+      assert.ok(fs.existsSync(file));
     });
 
     test('handleDrag: nested item sets only the items MIME', () => {

@@ -34,7 +34,7 @@ Drag pinned items to rearrange them: dragging up drops the item before the pin y
 
 ### Move and copy files
 
-Right-click any item and choose **Move to…** or **Copy to…** to pick a destination folder. You can also drag a file or folder from inside a pinned folder onto another folder in the panel to move it (VS Code asks for confirmation unless `explorer.confirmDragAndDrop` is off). If the destination already has an item with the same name you are asked first, and a replaced item is moved to the Trash. Moving a pinned item, or a folder that contains one, keeps the pin pointing at the new location. There is no undo for the move or copy itself, and dragging always moves; use **Copy to…** to copy.
+Right-click any item and choose **Move to…** or **Copy to…** to pick a destination folder. You can also drag a file or folder from inside a pinned folder onto another folder in the panel to move it (VS Code asks for confirmation unless `explorer.confirmDragAndDrop` is off). If the destination already has an item with the same name you are asked first, and a replaced item is moved to the Trash. Moving a pinned item, or a folder that contains one, keeps the pin pointing at the new location. There is no undo for the move or copy itself, and dragging always moves; use **Copy to…** to copy. Dropping a file or folder on the empty area of the panel asks whether to move it to the workspace root or to a folder you choose.
 
 ### Aliases
 
