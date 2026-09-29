@@ -239,9 +239,9 @@ export class PinboardProvider
   }
 
   async handleDrop(target: AnyItem | undefined, dataTransfer: vscode.DataTransfer): Promise<void> {
-    const fsItems = dataTransfer.get(FS_DND_MIME);
-    if (fsItems) {
-      await this.dropItems(target, fsItems.value as string[]);
+    const fsPaths: unknown = dataTransfer.get(FS_DND_MIME)?.value;
+    if (Array.isArray(fsPaths) && fsPaths.length > 0) {
+      await this.dropItems(target, fsPaths as string[]);
       return;
     }
     if (this.isSorted()) return;

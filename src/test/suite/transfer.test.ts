@@ -936,6 +936,20 @@ suite('PinboardProvider: move, copy and drag', () => {
       assert.ok(info.notCalled);
     });
 
+    for (const [label, junk] of [['an empty string', ''], ['undefined', undefined], ['a plain string', 'x'], ['an object', {}]] as const) {
+      test(`a pin reorder still works when VS Code also passes ${label} under the items MIME`, async () => {
+        const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+        const roots = await provider.getChildren(undefined);
+        const dt = new vscode.DataTransfer();
+        provider.handleDrag([roots[1] as PinnedItemRoot], dt);
+        dt.set(FS_MIME, new vscode.DataTransferItem(junk));
+        const err = sandbox.stub(vscode.window, 'showErrorMessage').resolves(undefined);
+        await provider.handleDrop(roots[0] as PinnedItemRoot, dt);
+        assert.ok(err.notCalled);
+        assert.deepStrictEqual(stored(ctx).map(p => p.path), [destDir, srcDir]);
+      });
+    }
+
     test('handleDrag: nested item sets only the items MIME', () => {
       const dt = new vscode.DataTransfer();
       new PinboardProvider(createMockContext()).handleDrag([new FileSystemItem(file, false)], dt);
