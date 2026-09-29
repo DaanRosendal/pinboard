@@ -34,3 +34,5 @@ export function makeTempDir(): string {
 export function removeTempDir(dir: string): void {
   fs.rmSync(dir, { recursive: true, force: true });
 }
+
+export const STATE_KEY = 'pinboard.paths';
