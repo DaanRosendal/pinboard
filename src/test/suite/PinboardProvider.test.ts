@@ -142,16 +142,38 @@ suite('PinboardProvider', () => {
       assert.strictEqual(path.basename((children[2] as FileSystemItem).itemPath), 'c-file.txt');
     });
 
-    test('excludes dotfiles', async () => {
-      fs.writeFileSync(path.join(tmpDir, '.hidden'), '');
+    test('includes dotfiles and dot-folders', async () => {
+      fs.writeFileSync(path.join(tmpDir, '.env'), '');
+      fs.writeFileSync(path.join(tmpDir, '.gitignore'), '');
+      fs.mkdirSync(path.join(tmpDir, '.github'));
       fs.writeFileSync(path.join(tmpDir, 'visible.txt'), '');
       const ctx = createMockContext();
       await ctx.workspaceState.update(STATE_KEY, [{ path: tmpDir }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const children = await provider.getChildren(roots[0] as PinnedItemRoot);
-      assert.strictEqual(children.length, 1);
-      assert.strictEqual(path.basename((children[0] as FileSystemItem).itemPath), 'visible.txt');
+      assert.deepStrictEqual(
+        children.map(c => path.basename((c as FileSystemItem).itemPath)),
+        ['.github', '.env', '.gitignore', 'visible.txt']
+      );
+    });
+
+    test('excludes VCS folders and OS metadata files', async () => {
+      for (const dir of ['.git', '.svn', '.hg', '.jj']) {
+        fs.mkdirSync(path.join(tmpDir, dir));
+      }
+      fs.writeFileSync(path.join(tmpDir, '.DS_Store'), '');
+      fs.writeFileSync(path.join(tmpDir, 'Thumbs.db'), '');
+      fs.writeFileSync(path.join(tmpDir, '.env'), '');
+      const ctx = createMockContext();
+      await ctx.workspaceState.update(STATE_KEY, [{ path: tmpDir }]);
+      const provider = new PinboardProvider(ctx);
+      const roots = await provider.getChildren(undefined);
+      const children = await provider.getChildren(roots[0] as PinnedItemRoot);
+      assert.deepStrictEqual(
+        children.map(c => path.basename((c as FileSystemItem).itemPath)),
+        ['.env']
+      );
     });
 
     test('returns [] for a file root item', async () => {

@@ -4,6 +4,7 @@ import * as fs from 'fs';
 
 const STATE_KEY = 'pinboard.paths';
 const DND_MIME = 'application/vscode.tree.pinboard';
+const ALWAYS_HIDDEN = new Set(['.git', '.svn', '.hg', '.jj', '.DS_Store', 'Thumbs.db']);
 
 // Sync stat used only at startup/scope-change (loadFromStorage), not during tree rendering.
 function pathExists(p: string): boolean {
@@ -168,7 +169,7 @@ export class PinboardProvider
     try {
       const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
       return entries
-        .filter(e => !e.name.startsWith('.'))
+        .filter(e => !ALWAYS_HIDDEN.has(e.name))
         .sort((a, b) => {
           if (a.isDirectory() && !b.isDirectory()) return -1;
           if (!a.isDirectory() && b.isDirectory()) return 1;
