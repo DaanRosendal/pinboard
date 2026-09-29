@@ -97,6 +97,7 @@ export class PinboardProvider
   private _refreshTimer: NodeJS.Timeout | undefined;
   private _dirPins = new Set<string>();
   private _lastRevealedPath: string | undefined;
+  private _moveHintShown = false;
   private _staleId: string | undefined;
   private _staleTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -251,6 +252,12 @@ export class PinboardProvider
         'Pinned items can only be reordered. Drop onto another pinned item, or use "Move to…" to move it into a folder.'
       );
       return;
+    }
+    if (target?.kind === 'root' && target.isDirectory && !this._moveHintShown) {
+      this._moveHintShown = true;
+      vscode.window.showInformationMessage(
+        'Dropping a pinned item onto a pinned folder reorders it. To move it into the folder, right-click it and choose "Move to…".'
+      );
     }
     const dragged: string[] = item.value;
     const remaining = this.pins.filter(p => !dragged.includes(p.path));

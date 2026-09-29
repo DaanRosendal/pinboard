@@ -30,7 +30,7 @@ Toggle between **Global** (pins survive across all workspaces) and **Workspace**
 
 ### Drag to reorder
 
-Drag pinned items to rearrange them. Order is persisted.
+Drag pinned items to rearrange them. Order is persisted. Dropping a pinned item onto another pinned folder reorders it; to move a pinned folder into another folder, right-click it and choose **Move to…**.
 
 ### Move and copy files
 

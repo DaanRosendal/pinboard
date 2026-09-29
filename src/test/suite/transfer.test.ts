@@ -896,6 +896,46 @@ suite('PinboardProvider: move, copy and drag', () => {
       await vscode.commands.executeCommand('workbench.action.revertAndCloseActiveEditor');
     });
 
+    test('dropping a pin onto a pinned folder reorders and shows the move hint once', async () => {
+      const { ctx, provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      const roots = await provider.getChildren(undefined);
+      const info = sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+      const dt = new vscode.DataTransfer();
+      provider.handleDrag([roots[1] as PinnedItemRoot], dt);
+      await provider.handleDrop(roots[0] as PinnedItemRoot, dt);
+      assert.deepStrictEqual(stored(ctx).map(p => p.path), [destDir, srcDir]);
+      assert.ok(info.calledOnce);
+      assert.match(String(info.firstCall.args[0]), /Move to/);
+      const roots2 = await provider.getChildren(undefined);
+      const dt2 = new vscode.DataTransfer();
+      provider.handleDrag([roots2[1] as PinnedItemRoot], dt2);
+      await provider.handleDrop(roots2[0] as PinnedItemRoot, dt2);
+      assert.ok(info.calledOnce);
+    });
+
+    test('no move hint when dropping a pin onto a pinned FILE or empty space', async () => {
+      const rootFile = path.join(tmpDir, 'root.txt');
+      fs.writeFileSync(rootFile, '');
+      const { provider } = await makeProvider([{ path: srcDir }, { path: rootFile }]);
+      const roots = await provider.getChildren(undefined);
+      const info = sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+      const dt = new vscode.DataTransfer();
+      provider.handleDrag([roots[0] as PinnedItemRoot], dt);
+      await provider.handleDrop(roots[1] as PinnedItemRoot, dt);
+      await provider.handleDrop(undefined, dt);
+      assert.ok(info.notCalled);
+    });
+
+    test('no move hint when a nested item is dropped onto a pinned folder', async () => {
+      const { provider } = await makeProvider([{ path: srcDir }, { path: destDir }]);
+      const roots = await provider.getChildren(undefined);
+      const info = sandbox.stub(vscode.window, 'showInformationMessage').resolves(undefined);
+      sandbox.stub(vscode.window, 'showWarningMessage').resolves('Move' as never);
+      const dt = dragOf(provider, [new FileSystemItem(file, false)]);
+      await provider.handleDrop(roots[1] as PinnedItemRoot, dt);
+      assert.ok(info.notCalled);
+    });
+
     test('handleDrag: nested item sets only the items MIME', () => {
       const dt = new vscode.DataTransfer();
       new PinboardProvider(createMockContext()).handleDrag([new FileSystemItem(file, false)], dt);
