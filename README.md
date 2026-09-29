@@ -133,6 +133,6 @@ Right-click any item for contextual actions:
 
 | Setting               | Default    | Description                                                                                                           |
 | --------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------- |
-| `pinboard.scope`      | `"global"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace.            |
+| `pinboard.scope`      | `"workspace"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace.         |
 | `pinboard.autoReveal` | `true`     | Auto-reveal the active file in the Pinboard tree when it falls under a pinned folder.                                 |
 | `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (folder name). `"relativePath"` - display path relative to workspace root. |

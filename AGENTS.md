@@ -70,7 +70,7 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - `contributes.views.explorer[].id` must equal the first arg of `createTreeView()`
 - `"group": "inline"` puts buttons directly on tree rows on hover; all other groups go in right-click menu
 - Command icons use VS Code codicons: `$(icon-name)` syntax
-- `activationEvents: ["onView:pinboard"]` — lazy activation, do not change to `*`
+- `activationEvents: ["onView:pinboard", "onStartupFinished"]` — `onStartupFinished` is required so `pinboard.globalPinPaths` / `pinboard.workspacePinPaths` context keys are set before the Explorer pin/unpin menus render; do not change to `*`
 - Marketplace metadata now lives in `package.json`: keep `publisher`, `license`, `icon`, `repository`, `homepage`, and `bugs` intact unless intentionally changing listing metadata
 - Marketplace discovery metadata also lives in `package.json`: keep `keywords`, `galleryBanner`, `markdown`, and `pricing` coherent with the listing strategy
 - The published extension icon is `assets/icon.png`; the larger source asset is `assets/icon-source.png` and is excluded from the VSIX via `.vscodeignore`
