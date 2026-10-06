@@ -30,6 +30,16 @@ npm run compile-tests && npx vscode-test
 
 Tests (~200, split by area in `src/test/suite/*.test.ts`) live in `src/test/` and run inside the real VS Code Extension Development Host using `@vscode/test-cli` + `@vscode/test-electron`. The workspace used by the test runner is `demo/`. Sinon stubs handle VS Code UI calls (dialogs, input boxes) that would otherwise block on user input. Manual testing is done via F5 in VS Code.
 
+## UI end-to-end tests (Playwright)
+
+`npm run e2e` builds the bundle and drives a real VS Code window through `e2e/` (Playwright `_electron`, separate from `npm test`). It opens real windows and takes focus, so run it when you can leave the machine alone (about 2 minutes). It covers what the API tests cannot: context menus per item type, quick picks, modal text, tree drag and drop, the folder picker, the title-bar buttons, Explorer pin/unpin, Restricted Mode.
+
+- `e2e/fixtures.ts` launches VS Code with a throwaway workspace under `/tmp` (never `demo/`), an isolated `--user-data-dir`, and the VS Code version pinned by `PINNED_VSCODE` (override with `PB_VSCODE_VERSION`, or point `PB_VSCODE_PATH` at a binary). Failures keep a trace and screenshot in `e2e/.results/`.
+- Native menus and dialogs are invisible to Playwright, so the test profile sets `window.menuStyle`/`dialogStyle`/`titleBarStyle` to `custom` and `files.simpleDialog.enable`. The real macOS menu and folder panel are therefore not covered; check them by hand before a release.
+- `e2e/workbench.ts` holds the helpers. Pinned roots have the full path as accessible name (tooltip), so `root(absPath)` finds them and `labels()` reads the visible text. `drag()` waits for the rows to stop moving, since a drag started during a tree animation silently does nothing. The Pinboard panel is short, so specs call `giveRoom()` before expanding folders.
+- Dialogs that replace the user's Trash (Replace, Delete) are only asserted on and cancelled, never confirmed.
+- When adding a test, break the extension on purpose once to confirm the test fails.
+
 ## Manual testing (isolated Extension Development Host)
 
 A plain `code --extensionDevelopmentPath` or `open -n -a "Visual Studio Code"` gets merged into an already-running VS Code: it reloads an existing window and ignores the folder argument. Start a separate instance instead, with a **short** `--user-data-dir` (paths over ~100 chars break VS Code's IPC socket):
@@ -130,6 +140,8 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 - Always use Conventional Commits for commit messages (for example: `feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`)
 
 ## Release workflow
+
+Before publishing a new version, always run both `npm test` (API tests) and `npm run e2e` (UI tests) and make sure they pass, then do the short manual check of the native macOS menu and folder panel (see the e2e section).
 
 After bumping `package.json` version and adding a `CHANGELOG.md` entry, run:
 

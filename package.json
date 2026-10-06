@@ -661,11 +661,13 @@
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "check-types": "tsc --noEmit",
+    "check-types": "tsc --noEmit && tsc --noEmit -p e2e",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "e2e": "node esbuild.js && playwright test -c e2e"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
     "@types/sinon": "^21.0.0",
