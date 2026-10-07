@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.2.0
 
 - **Feature:** Compact folders. Folders that contain only a single folder are shown as one row, like `src/main/java`, as in the VS Code Explorer. Rename, delete, move and drag apply to the last folder of the row. Turn it off with `pinboard.compactFolders`.
 
