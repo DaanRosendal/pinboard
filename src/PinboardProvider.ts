@@ -6,6 +6,7 @@ const STATE_KEY = 'pinboard.paths';
 const DND_MIME = 'application/vscode.tree.pinboard';
 const FS_DND_MIME = 'application/vscode.tree.pinboard.items';
 const ALWAYS_HIDDEN = new Set(['.git', '.svn', '.hg', '.jj', '.DS_Store', 'Thumbs.db']);
+const MAX_CHAIN_DEPTH = 50;
 
 // Sync stat used only at startup/scope-change (loadFromStorage), not during tree rendering.
 function pathExists(p: string): boolean {
@@ -60,15 +61,17 @@ export class FileSystemItem extends vscode.TreeItem {
 
   constructor(
     public readonly itemPath: string,
-    public readonly isDirectory: boolean
+    public readonly isDirectory: boolean,
+    compactLabel?: string
   ) {
     super(
-      path.basename(itemPath),
+      compactLabel ?? path.basename(itemPath),
       isDirectory
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None
     );
     this.id = itemPath;
+    if (compactLabel) this.tooltip = itemPath;
     this.resourceUri = vscode.Uri.file(itemPath);
     this.contextValue = isDirectory ? 'pinnedDirectory' : 'pinnedFile';
     if (!isDirectory) {
@@ -167,30 +170,23 @@ export class PinboardProvider
     if (element.kind === 'root' && !element.isDirectory) return [];
 
     const dirPath = element.itemPath;
-
-    try {
-      const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
-      return entries
-        .filter(e => !ALWAYS_HIDDEN.has(e.name))
-        .sort((a, b) => {
-          if (a.isDirectory() && !b.isDirectory()) return -1;
-          if (!a.isDirectory() && b.isDirectory()) return 1;
-          return a.name.localeCompare(b.name);
-        })
-        .map(e => new FileSystemItem(path.join(dirPath, e.name), e.isDirectory()));
-    } catch {
-      return [];
-    }
+    const entries = (await this.visibleEntries(dirPath)).sort((a, b) => {
+      if (a.isDirectory() && !b.isDirectory()) return -1;
+      if (!a.isDirectory() && b.isDirectory()) return 1;
+      return a.name.localeCompare(b.name);
+    });
+    return Promise.all(
+      entries.map(e => {
+        const entryPath = path.join(dirPath, e.name);
+        return e.isDirectory() ? this.makeFolderRow(entryPath) : new FileSystemItem(entryPath, false);
+      })
+    );
   }
 
-  getParent(element: AnyItem): vscode.ProviderResult<AnyItem> {
+  async getParent(element: AnyItem): Promise<AnyItem | undefined> {
     if (element.kind === 'root') return undefined;
-    const parentPath = path.dirname(element.itemPath);
-    const pin = this.pins.find(p => p.path === parentPath);
-    if (pin) {
-      return this.makeRoot(pin, true, false, this.viewPins().indexOf(pin));
-    }
-    return new FileSystemItem(parentPath, true);
+    const top = element.isDirectory ? await this.chainStartOf(element.itemPath) : element.itemPath;
+    return this.rowForDir(path.dirname(top));
   }
 
   revealActiveFile(treeView: vscode.TreeView<AnyItem>, fsPath: string): void {
@@ -629,6 +625,54 @@ export class PinboardProvider
 
   private getWorkspaceRoot(): string | null {
     return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
+  }
+
+  private compactEnabled(): boolean {
+    return vscode.workspace.getConfiguration('pinboard').get<boolean>('compactFolders', true);
+  }
+
+  private async visibleEntries(dir: string): Promise<fs.Dirent[]> {
+    try {
+      const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+      return entries.filter(e => !ALWAYS_HIDDEN.has(e.name));
+    } catch {
+      return [];
+    }
+  }
+
+  private async makeFolderRow(start: string): Promise<FileSystemItem> {
+    if (!this.compactEnabled()) return new FileSystemItem(start, true);
+    const names = [path.basename(start)];
+    let end = start;
+    for (let i = 0; i < MAX_CHAIN_DEPTH; i++) {
+      const entries = await this.visibleEntries(end);
+      if (entries.length !== 1 || !entries[0].isDirectory()) break;
+      end = path.join(end, entries[0].name);
+      names.push(entries[0].name);
+    }
+    return new FileSystemItem(end, true, names.length > 1 ? names.join('/') : undefined);
+  }
+
+  private async chainStartOf(dir: string): Promise<string> {
+    if (!this.compactEnabled() || !this.pins.some(p => dir.startsWith(p.path + path.sep))) return dir;
+    let start = dir;
+    for (let i = 0; i < MAX_CHAIN_DEPTH; i++) {
+      const parent = path.dirname(start);
+      if (parent === start || this.pins.some(p => p.path === parent)) break;
+      const entries = await this.visibleEntries(parent);
+      if (entries.length !== 1 || entries[0].name !== path.basename(start)) break;
+      start = parent;
+    }
+    return start;
+  }
+
+  private async rowForDir(dir: string): Promise<AnyItem> {
+    const pin = this.pins.find(p => p.path === dir);
+    if (pin) return this.makeRoot(pin, true, false, this.viewPins().indexOf(pin));
+    const start = await this.chainStartOf(dir);
+    const rel = path.relative(start, dir);
+    const label = rel ? [path.basename(start), ...rel.split(path.sep)].join('/') : undefined;
+    return new FileSystemItem(dir, true, label);
   }
 
   private makeRoot(pin: Pin, isDirectory: boolean, active: boolean, index: number): PinnedItemRoot {

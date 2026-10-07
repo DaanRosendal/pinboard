@@ -35,7 +35,7 @@ Tests (~200, split by area in `src/test/suite/*.test.ts`) live in `src/test/` an
 `npm run e2e` builds the bundle and drives a real VS Code window through `e2e/` (Playwright `_electron`, separate from `npm test`). It opens real windows and takes focus, so run it when you can leave the machine alone (about 2 minutes). It covers what the API tests cannot: context menus per item type, quick picks, modal text, tree drag and drop, the folder picker, the title-bar buttons, Explorer pin/unpin, Restricted Mode.
 
 - `e2e/fixtures.ts` launches VS Code with a throwaway workspace under `/tmp` (never `demo/`), an isolated `--user-data-dir`, and the VS Code version pinned by `PINNED_VSCODE` (override with `PB_VSCODE_VERSION`, or point `PB_VSCODE_PATH` at a binary). Failures keep a trace and screenshot in `e2e/.results/`.
-- Native menus and dialogs are invisible to Playwright, so the test profile sets `window.menuStyle`/`dialogStyle`/`titleBarStyle` to `custom` and `files.simpleDialog.enable`. The real macOS menu and folder panel are therefore not covered; check them by hand before a release.
+- Native menus and dialogs are invisible to Playwright, so the test profile sets `window.menuStyle`/`dialogStyle`/`titleBarStyle` to `custom` and `files.simpleDialog.enable`. The real macOS menu and folder panel are therefore not covered, so check them by hand before a release that changes menu contributions, `when` clauses, or `showOpenDialog` usage.
 - `e2e/workbench.ts` holds the helpers. Pinned roots have the full path as accessible name (tooltip), so `root(absPath)` finds them and `labels()` reads the visible text. `drag()` waits for the rows to stop moving, since a drag started during a tree animation silently does nothing. The Pinboard panel is short, so specs call `giveRoom()` before expanding folders.
 - Dialogs that replace the user's Trash (Replace, Delete) are only asserted on and cancelled, never confirmed.
 - When adding a test, break the extension on purpose once to confirm the test fails.
@@ -66,6 +66,7 @@ src/
     suite/
       extension.test.ts     # smoke test: extension activates without error
       tree.test.ts          # tree items, labels, getParent, reveal, sorting
+      compact.test.ts       # compact folders: chains, getParent/reveal through them
       pins.test.ts          # pin add/remove/reorder, pin-to-scope, storage loading
       scope.test.ts         # global vs workspace scope behavior
       presets.test.ts       # .pinboard.json presets
@@ -86,7 +87,8 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 
 - **State**: `globalState` (global scope) or `workspaceState` (workspace scope) via `ExtensionContext`. Key: `pinboard.paths`. Value type: `Pin[] = Array<{ path: string; alias?: string }>`. Never use the filesystem to persist state.
 - **UI**: `TreeView` only — no WebviewView. The view ID `"pinboard"` must match in `package.json` and `createTreeView()`.
-- **Tree item types**: `PinnedItemRoot` (pinned roots, `kind: 'root'`) and `FileSystemItem` (nested files/dirs, `kind: 'fsitem'`). Both extend `vscode.TreeItem`. Each item sets `id` to `itemPath` so `TreeView.reveal()` can locate it.
+- **Tree item types**: `PinnedItemRoot` (pinned roots, `kind: 'root'`) and `FileSystemItem` (nested files/dirs, `kind: 'fsitem'`). Both extend `vscode.TreeItem`. Each item sets `id` to `itemPath` so `TreeView.reveal()` can locate it. A `FileSystemItem` may carry a `compactLabel` (`a/b/c`); its `itemPath`/`id` is then the deepest folder.
+- **Compact folders** (`pinboard.compactFolders`, default on): `getChildren` merges a chain of folders that each hold exactly one visible folder (`ALWAYS_HIDDEN` entries don't count, symlinks aren't followed, depth capped by `MAX_CHAIN_DEPTH`) into one row, from the first level under a pin; pinned roots and files are never merged. Intermediate folders have no row, so `getParent()` is async and must apply the same rule as `getChildren`: `chainStartOf()` walks up (stopping at pinned folders) and `rowForDir()` rebuilds the row. Change one walk and you must change the other. Rename, delete, move and drag act on the deepest folder.
 - **Auto-reveal**: The provider implements `getParent()` (required by `TreeView.reveal()`) and `revealActiveFile()`. On editor tab switch, the active file is highlighted in the tree if it falls under a pinned folder. A stale-selection clearing mechanism temporarily mangles the `id` of the previously revealed item to force VS Code to drop the highlight when the active file leaves all pins.
 - **contextValue strings** (must stay in sync with `package.json` `when` clauses):
   - Nested items: `pinnedDirectory` and `pinnedFile`
@@ -141,9 +143,19 @@ Everything lives in two source files. Keep it that way unless there's a strong r
 
 ## Release workflow
 
-Before publishing a new version, always run both `npm test` (API tests) and `npm run e2e` (UI tests) and make sure they pass, then do the short manual check of the native macOS menu and folder panel (see the e2e section).
+Before publishing a new version, always run both `npm test` (API tests) and `npm run e2e` (UI tests) and make sure they pass. If the release changes menu contributions, `when` clauses, or `showOpenDialog` usage, also do the short manual check of the native macOS menu and folder panel (see the e2e section).
 
-After bumping `package.json` version and adding a `CHANGELOG.md` entry, run:
+### Versioning
+
+Follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html). The public API is the settings, command IDs, `.pinboard.json` format and stored `pinboard.paths` state.
+
+- **MAJOR**: incompatible change to the public API.
+- **MINOR**: new backward-compatible functionality (feature, setting, command), or deprecating public API.
+- **PATCH**: backward-compatible bug fixes only.
+- `0.y.z` is initial development where anything may change. We still bump MINOR for features and PATCH for fixes.
+- A released version is never modified. Fix forward with a new version.
+
+After bumping `package.json` version (`npm version <VER> --no-git-tag-version`) and adding a `CHANGELOG.md` entry, run:
 
 ```bash
 VER=0.0.20   # set to new version

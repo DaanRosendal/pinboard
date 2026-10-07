@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+- **Feature:** Compact folders. Folders that contain only a single folder are shown as one row, like `src/main/java`, as in the VS Code Explorer. Rename, delete, move and drag apply to the last folder of the row. Turn it off with `pinboard.compactFolders`.
+
 ## 0.1.0
 
 - **Feature:** Dotfiles and dot-folders now show under pinned folders (`.git`, `.svn`, `.hg`, `.jj`, `.DS_Store` and `Thumbs.db` stay hidden).

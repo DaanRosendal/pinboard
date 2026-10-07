@@ -44,6 +44,10 @@ Right-click any pinned root item and choose **Set Alias…** to give it a custom
 
 By default pins keep the order you arranged them in. Set `Settings > Pinboard > Sort Pins` to `alias` (or run **Pinboard: Toggle Sort (Manual / Alphabetical)**) to sort pinned root items alphabetically by their displayed label, which is the alias if set, otherwise the name. Combined with aliases such as `[api] Server` and `[ui] App`, prefixes act as groups. Sorting never changes your stored order, so switching back to `manual` restores it. Drag reordering and Move Up/Down are disabled while sorting is on.
 
+### Compact folders
+
+Folders that contain only a single folder are shown as one row, like `src/main/java/com`, so deep paths take fewer clicks. A row ends at a folder with several entries, a file, or nothing. The pinned item itself is never merged. Actions on a merged row (rename, delete, new file, move, copy, drag) apply to its last folder. Turn it off with `Settings > Pinboard > Compact Folders`.
+
 ### Label style
 
 Configure `Settings > Pinboard > Label Style` to display pinned root items as the file/folder name (default) or as a path relative to the workspace root, useful in monorepos where multiple pinned folders share the same name. Aliases always take precedence over this setting.
@@ -142,5 +146,6 @@ Right-click any item for contextual actions:
 | `pinboard.scope`      | `"workspace"` | `"global"` - pins persist across all workspaces. `"workspace"` - pins are scoped to the current workspace.         |
 | `pinboard.autoReveal` | `true`     | Auto-reveal the active file in the Pinboard tree when it falls under a pinned folder.                                 |
 | `pinboard.dropOnPinnedFolder` | `"ask"` | `"ask"` - ask whether to reorder or move when a pin is dropped on a pinned folder. `"reorder"` - always reorder. `"move"` - always move into the folder. |
+| `pinboard.compactFolders` | `true` | Show folders that contain only a single folder as one row, like `a/b/c`. |
 | `pinboard.sortPins`   | `"manual"` | `"manual"` - pins keep your order. `"alias"` - sort alphabetically by alias, falling back to name.                    |
 | `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (folder name). `"relativePath"` - display path relative to workspace root. |

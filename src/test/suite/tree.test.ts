@@ -296,7 +296,7 @@ suite('PinboardProvider: tree, labels and reveal', () => {
       await ctx.workspaceState.update(STATE_KEY, [{ path: dirA }]);
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
-      const parent = provider.getParent(roots[0]);
+      const parent = await provider.getParent(roots[0]);
       assert.strictEqual(parent, undefined);
     });
 
@@ -309,7 +309,7 @@ suite('PinboardProvider: tree, labels and reveal', () => {
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const child = new FileSystemItem(path.join(dirA, 'foo.txt'), false);
-      const parent = provider.getParent(child) as PinnedItemRoot;
+      const parent = await provider.getParent(child) as PinnedItemRoot;
       assert.ok(parent);
       assert.strictEqual(parent.kind, 'root');
       assert.strictEqual(parent.itemPath, dirA);
@@ -325,7 +325,7 @@ suite('PinboardProvider: tree, labels and reveal', () => {
       const provider = new PinboardProvider(ctx);
       await provider.getChildren(undefined);
       const deepItem = new FileSystemItem(path.join(sub, 'deep.txt'), false);
-      const parent = provider.getParent(deepItem) as FileSystemItem;
+      const parent = await provider.getParent(deepItem) as FileSystemItem;
       assert.ok(parent);
       assert.strictEqual(parent.kind, 'fsitem');
       assert.strictEqual(parent.itemPath, sub);
@@ -341,7 +341,7 @@ suite('PinboardProvider: tree, labels and reveal', () => {
       const provider = new PinboardProvider(ctx);
       const roots = await provider.getChildren(undefined);
       const child = new FileSystemItem(path.join(dirA, 'foo.txt'), false);
-      const parent = provider.getParent(child) as PinnedItemRoot;
+      const parent = await provider.getParent(child) as PinnedItemRoot;
       assert.strictEqual(parent.id, roots[0].id);
     });
   });
