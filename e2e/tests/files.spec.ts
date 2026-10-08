@@ -29,6 +29,28 @@ test('New File, Rename and Delete work on nested items', async ({ wb, workspace 
   expect(fs.existsSync(path.join(src, 'renamed.txt'))).toBe(true);
 });
 
+test('F2 renames the selected nested item', async ({ wb, workspace }) => {
+  const src = path.join(workspace, 'src');
+  await wb.root(src).click();
+  await wb.node('f2.txt').click();
+  await wb.page.keyboard.press('F2');
+  await wb.fillInput('viakey.txt');
+  await expect(wb.node('viakey.txt')).toBeVisible();
+  expect(fs.existsSync(path.join(src, 'viakey.txt'))).toBe(true);
+  expect(fs.existsSync(path.join(src, 'f2.txt'))).toBe(false);
+});
+
+test('F2 renames a pinned root and keeps it pinned', async ({ wb, workspace }) => {
+  const notes = path.join(workspace, 'notes.md');
+  await wb.root(path.join(workspace, 'dest')).click();
+  await wb.root(notes).click();
+  await wb.page.keyboard.press('F2');
+  await wb.fillInput('renamed.md');
+  await expect.poll(() => fs.existsSync(path.join(workspace, 'renamed.md'))).toBe(true);
+  await expect(wb.root(path.join(workspace, 'renamed.md'))).toBeVisible();
+  await expect(wb.root(notes)).toHaveCount(0);
+});
+
 test('files created or removed outside VS Code show up in an expanded folder', async ({ wb, workspace }) => {
   const src = path.join(workspace, 'src');
   await wb.root(src).click();

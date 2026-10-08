@@ -299,6 +299,11 @@
         "title": "Rename"
       },
       {
+        "command": "pinboard.renameSelected",
+        "category": "Pinboard",
+        "title": "Rename"
+      },
+      {
         "command": "pinboard.deletePinnedFolder",
         "category": "Pinboard",
         "title": "Delete"
@@ -338,6 +343,13 @@
         "command": "pinboard.openWorkspaceConfig",
         "category": "Pinboard",
         "title": "Open Workspace Config"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "pinboard.renameSelected",
+        "key": "f2",
+        "when": "listFocus && focusedView == pinboard && !inputFocus"
       }
     ],
     "menus": {
@@ -591,6 +603,10 @@
         },
         {
           "command": "pinboard.renamePinnedFolder",
+          "when": "false"
+        },
+        {
+          "command": "pinboard.renameSelected",
           "when": "false"
         },
         {

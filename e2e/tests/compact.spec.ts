@@ -63,6 +63,16 @@ test('Rename on a merged row renames its last folder only', async ({ wb, workspa
   await expect.poll(() => wb.labels()).toContain('x/y/w');
 });
 
+test('F2 on a merged row renames its last folder only', async ({ wb, workspace }) => {
+  const { other, deepest } = makeChain(workspace);
+  await wb.root(other).click();
+  await wb.root(deepest).click();
+  await wb.page.keyboard.press('F2');
+  await wb.fillInput('w');
+  await expect.poll(() => fs.existsSync(path.join(other, 'x', 'y', 'w', 'leaf.txt'))).toBe(true);
+  expect(fs.existsSync(path.join(other, 'x', 'y'))).toBe(true);
+});
+
 test('opening a file inside a collapsed chain reveals it in the merged row', async ({ wb, workspace }) => {
   const { other, deepest } = makeChain(workspace);
   await expect(wb.root(other)).toBeVisible();

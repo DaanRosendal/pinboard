@@ -48,6 +48,10 @@ By default pins keep the order you arranged them in. Set `Settings > Pinboard > 
 
 Folders that contain only a single folder are shown as one row, like `src/main/java/com`, so deep paths take fewer clicks. A row ends at a folder with several entries, a file, or nothing. The pinned item itself is never merged. Actions on a merged row (rename, delete, new file, move, copy, drag) apply to its last folder. Turn it off with `Settings > Pinboard > Compact Folders`.
 
+### Rename with F2
+
+Select a row in the Pinboard tree and press `F2` to rename it, the same as Rename in the context menu.
+
 ### Label style
 
 Configure `Settings > Pinboard > Label Style` to display pinned root items as the file/folder name (default) or as a path relative to the workspace root, useful in monorepos where multiple pinned folders share the same name. Aliases always take precedence over this setting.

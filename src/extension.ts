@@ -147,6 +147,11 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('pinboard.rename', (item: FileSystemItem) =>
       provider.rename(item)
     ),
+    vscode.commands.registerCommand('pinboard.renameSelected', () => {
+      const item = treeView.selection[0];
+      if (!item) return;
+      return item.kind === 'root' ? provider.renamePinnedItem(item) : provider.rename(item);
+    }),
     vscode.commands.registerCommand('pinboard.deleteItem', (item: FileSystemItem) =>
       provider.deleteItem(item)
     ),
