@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.4.0
+
+- **Feature:** New `pinboard.compactFolderSeparator` setting to change the text between the folder names of a merged row, like ` / ` or ` › `. The default stays `/`.
+
 ## 0.3.0
 
 - **Feature:** Press `F2` on the selected row of the Pinboard tree to rename it. Pinned items keep their pin, and a merged compact row renames its last folder.
