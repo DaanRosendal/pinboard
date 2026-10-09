@@ -72,7 +72,8 @@ export function activate(context: vscode.ExtensionContext): void {
       if (
         e.affectsConfiguration('pinboard.labelStyle') ||
         e.affectsConfiguration('pinboard.sortPins') ||
-        e.affectsConfiguration('pinboard.compactFolders')
+        e.affectsConfiguration('pinboard.compactFolders') ||
+        e.affectsConfiguration('pinboard.compactFolderSeparator')
       ) {
         provider.refresh();
       }

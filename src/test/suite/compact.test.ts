@@ -37,9 +37,13 @@ suite('PinboardProvider: compact folders', () => {
     return (await provider.getChildren(target)) as FileSystemItem[];
   }
 
-  function stubCompact(value: boolean): void {
+  function stubCompact(value: boolean, separator?: string): void {
     sandbox.stub(vscode.workspace, 'getConfiguration').returns({
-      get: (key: string, defaultVal?: unknown) => key === 'compactFolders' ? value : defaultVal,
+      get: (key: string, defaultVal?: unknown) => {
+        if (key === 'compactFolders') return value;
+        if (key === 'compactFolderSeparator' && separator !== undefined) return separator;
+        return defaultVal;
+      },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   }
@@ -235,6 +239,40 @@ suite('PinboardProvider: compact folders', () => {
       const parent = (await provider.getParent(revealed)) as FileSystemItem;
       const [row] = await rows(provider);
       assert.strictEqual(parent.id, row.id);
+    });
+  });
+
+  suite('separator', () => {
+    test('joins the names with the configured text', async () => {
+      mkdirs('a', 'b', 'c');
+      stubCompact(true, ' › ');
+      const [row] = await rows(await makeProvider());
+      assert.strictEqual(row.label, 'a › b › c');
+    });
+
+    test('an empty separator falls back to a slash', async () => {
+      mkdirs('a', 'b', 'c');
+      stubCompact(true, '');
+      const [row] = await rows(await makeProvider());
+      assert.strictEqual(row.label, 'a/b/c');
+    });
+
+    test('getParent rebuilds the row with the same separator', async () => {
+      const c = mkdirs('a', 'b', 'c');
+      const file = path.join(c, 'f.txt');
+      fs.writeFileSync(file, '');
+      stubCompact(true, ' / ');
+      const provider = await makeProvider();
+      const parent = (await provider.getParent(new FileSystemItem(file, false))) as FileSystemItem;
+      assert.strictEqual(parent.label, 'a / b / c');
+    });
+
+    test('a single folder keeps its plain name', async () => {
+      mkdirs('a');
+      fs.writeFileSync(path.join(tmpDir, 'a', 'f.txt'), '');
+      stubCompact(true, ' › ');
+      const [row] = await rows(await makeProvider());
+      assert.strictEqual(row.label, 'a');
     });
   });
 });

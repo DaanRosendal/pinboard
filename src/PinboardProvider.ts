@@ -631,6 +631,11 @@ export class PinboardProvider
     return vscode.workspace.getConfiguration('pinboard').get<boolean>('compactFolders', true);
   }
 
+  private compactSeparator(): string {
+    const value = vscode.workspace.getConfiguration('pinboard').get<string>('compactFolderSeparator', '/');
+    return value === '' ? '/' : value;
+  }
+
   private async visibleEntries(dir: string): Promise<fs.Dirent[]> {
     try {
       const entries = await fs.promises.readdir(dir, { withFileTypes: true });
@@ -650,7 +655,7 @@ export class PinboardProvider
       end = path.join(end, entries[0].name);
       names.push(entries[0].name);
     }
-    return new FileSystemItem(end, true, names.length > 1 ? names.join('/') : undefined);
+    return new FileSystemItem(end, true, names.length > 1 ? names.join(this.compactSeparator()) : undefined);
   }
 
   private async chainStartOf(dir: string): Promise<string> {
@@ -671,7 +676,7 @@ export class PinboardProvider
     if (pin) return this.makeRoot(pin, true, false, this.viewPins().indexOf(pin));
     const start = await this.chainStartOf(dir);
     const rel = path.relative(start, dir);
-    const label = rel ? [path.basename(start), ...rel.split(path.sep)].join('/') : undefined;
+    const label = rel ? [path.basename(start), ...rel.split(path.sep)].join(this.compactSeparator()) : undefined;
     return new FileSystemItem(dir, true, label);
   }
 

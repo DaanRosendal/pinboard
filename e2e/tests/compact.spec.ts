@@ -174,6 +174,33 @@ test('changing pinboard.compactFolders in settings updates the open tree', async
   await expect.poll(() => wb.labels()).toEqual(['src', 'dest', 'other', 'x/y/z', 'notes.md']);
 });
 
+test.describe('pinboard.compactFolderSeparator', () => {
+  test.use({ userSettings: { 'pinboard.compactFolderSeparator': ' › ' } });
+
+  test('merged rows use the configured separator', async ({ wb, workspace }) => {
+    const { other, deepest } = makeChain(workspace);
+    await wb.root(other).click();
+    await expect.poll(() => wb.labels()).toEqual(['src', 'dest', 'other', 'x › y › z', 'notes.md']);
+    await expect(wb.root(deepest)).toBeVisible();
+  });
+});
+
+test('changing pinboard.compactFolderSeparator in settings updates the open tree', async ({ wb, workspace }) => {
+  const { other } = makeChain(workspace);
+  const settingsFile = path.join(path.dirname(workspace), 'u', 'User', 'settings.json');
+  const setSeparator = (value: string) => {
+    const settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+    settings['pinboard.compactFolderSeparator'] = value;
+    fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2));
+  };
+
+  await wb.page.waitForTimeout(1000);
+  await wb.root(other).click();
+  await expect.poll(() => wb.labels()).toEqual(['src', 'dest', 'other', 'x/y/z', 'notes.md']);
+  setSeparator(' / ');
+  await expect.poll(() => wb.labels()).toEqual(['src', 'dest', 'other', 'x / y / z', 'notes.md']);
+});
+
 test.describe('pinboard.compactFolders = false', () => {
   test.use({ userSettings: { 'pinboard.compactFolders': false } });
 

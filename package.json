@@ -123,6 +123,11 @@
           "default": true,
           "description": "Show folders that contain only a single folder as one row, like `a/b/c`. Rename, delete, move and drag apply to the last folder of the row."
         },
+        "pinboard.compactFolderSeparator": {
+          "type": "string",
+          "default": "/",
+          "description": "Text placed between the folder names of a merged row, like ` / ` or ` › `. An empty value uses `/`."
+        },
         "pinboard.sortPins": {
           "type": "string",
           "enum": [

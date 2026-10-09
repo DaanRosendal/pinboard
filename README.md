@@ -46,7 +46,7 @@ By default pins keep the order you arranged them in. Set `Settings > Pinboard > 
 
 ### Compact folders
 
-Folders that contain only a single folder are shown as one row, like `src/main/java/com`, so deep paths take fewer clicks. A row ends at a folder with several entries, a file, or nothing. The pinned item itself is never merged. Actions on a merged row (rename, delete, new file, move, copy, drag) apply to its last folder. Turn it off with `Settings > Pinboard > Compact Folders`.
+Folders that contain only a single folder are shown as one row, like `src/main/java/com`, so deep paths take fewer clicks. A row ends at a folder with several entries, a file, or nothing. The pinned item itself is never merged. Actions on a merged row (rename, delete, new file, move, copy, drag) apply to its last folder. Turn it off with `Settings > Pinboard > Compact Folders`, or change the text between the names (for example ` / ` or ` › `) with `Compact Folder Separator`.
 
 ### Rename with F2
 
@@ -151,5 +151,6 @@ Right-click any item for contextual actions:
 | `pinboard.autoReveal` | `true`     | Auto-reveal the active file in the Pinboard tree when it falls under a pinned folder.                                 |
 | `pinboard.dropOnPinnedFolder` | `"ask"` | `"ask"` - ask whether to reorder or move when a pin is dropped on a pinned folder. `"reorder"` - always reorder. `"move"` - always move into the folder. |
 | `pinboard.compactFolders` | `true` | Show folders that contain only a single folder as one row, like `a/b/c`. |
+| `pinboard.compactFolderSeparator` | `/` | Text between the folder names of a merged row, like ` / ` or ` › `. |
 | `pinboard.sortPins`   | `"manual"` | `"manual"` - pins keep your order. `"alias"` - sort alphabetically by alias, falling back to name.                    |
 | `pinboard.labelStyle` | `"name"`   | `"name"` - display the file or folder name (folder name). `"relativePath"` - display path relative to workspace root. |
