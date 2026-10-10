@@ -6,3 +6,6 @@ contact_links:
   - name: Question
     url: https://github.com/DaanRosendal/pinboard/discussions/new?category=q-a
     about: Ask how to do something
+  - name: Poll
+    url: https://github.com/DaanRosendal/pinboard/discussions/new?category=polls
+    about: Ask the community to vote between options
