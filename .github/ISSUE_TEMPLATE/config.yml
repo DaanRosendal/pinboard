@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Feature request
+    url: https://github.com/DaanRosendal/pinboard/discussions/new?category=feature-requests
+    about: Suggest an idea and let others vote on it
+  - name: Question
+    url: https://github.com/DaanRosendal/pinboard/discussions/new?category=q-a
+    about: Ask how to do something
